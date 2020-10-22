@@ -86,6 +86,18 @@ class Action:
                 str(self.__effects))
 
 
+# class Vertex:
+#     def __init__(self, obj):
+#         self.__obj = obj
+#         self.__child = None
+#         self.__parent = None
+
+
+# class Graph:
+#     def __init__(self, iv):
+#         self.__roots = []
+
+
 """
 ###############################################################################
                                     Functions
