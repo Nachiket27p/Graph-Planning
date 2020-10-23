@@ -1,4 +1,5 @@
 
+from Planner import *
 import os
 import re
 from sys import argv
@@ -14,88 +15,10 @@ __email__ = 'nnpatel5@ncsu.edu'
 """
 # expected number of arguments
 nArgExpected = 2 + 1  # +1 is for the filename itself
-INIT = "Initial"
-GOAL = "Goal"
-INTER = "Intermediate"
 iStates = []
 gStates = []
 actions = []
-
-"""
-###############################################################################
-                                    Classes
-###############################################################################
-"""
-
-
-class State:
-    def __init__(self, name, sType):
-        self.__name = name
-        self.__sType = sType
-
-    @property
-    def name(self):
-        return self.__name
-
-    @property
-    def sType(self):
-        return self.__sType
-
-    def __str__(self):
-        rtn = ""
-        if self.__sType == "Goal":
-            rtn += "GoalState: "
-        elif self.__sType == "Initial":
-            rtn += "InitialState: "
-        else:
-            rtn += "IntermediateState: "
-
-        rtn += self.__name
-        return rtn
-
-
-class Action:
-    def __init__(self, act, preconditions=[], effects=[]):
-        self.__act = act
-        self.__preconditions = preconditions
-        self.__effects = effects
-
-    @property
-    def act(self):
-        return self.__act
-
-    @property
-    def preconditions(self):
-        return self.__preconditions
-
-    @property
-    def effects(self):
-        return self.__effects
-
-    def addPrecondition(self, precondition):
-        self.__preconditions.append(precondition)
-
-    def addEffect(self, effect):
-        self.__effects.append(effect)
-
-    def __str__(self):
-        return ("Action: " + self.__act +
-                "\n\tPreconditions:\t" +
-                str(self.__preconditions) +
-                "\n\tEffects:\t" +
-                str(self.__effects))
-
-
-# class Vertex:
-#     def __init__(self, obj):
-#         self.__obj = obj
-#         self.__child = None
-#         self.__parent = None
-
-
-# class Graph:
-#     def __init__(self, iv):
-#         self.__roots = []
+sDict = dict()
 
 
 """
@@ -112,28 +35,69 @@ def loadFile(inFile):
         split = re.split('\[|,|]', line)
         if split[0] == 'InitialState ':
             for i in range(1, len(split)-1):
-                iStates.append(State(split[i], INIT))
+                s = State(split[i])
+                iStates.append(s)
+                sDict[split[i]] = s
         elif split[0] == 'GoalState ':
             for i in range(1, len(split)-1):
-                gStates.append(State(split[i], GOAL))
+                if not(split[i] in sDict):
+                    sDict[split[i]] = State(split[i])
+                gStates.append(sDict[split[i]])
         elif split[0] == 'Act ':
             a = Action(split[1])
-
             preconds = f.readline()
             psplit = re.split('\[|,|]', preconds)
             for i in range(1, len(psplit)-1):
-                a.addPrecondition(psplit[i])
+                if not(psplit[i] in sDict):
+                    sDict[psplit[i]] = State(psplit[i])
+                a.addPrecondition(sDict[psplit[i]])
 
             effects = f.readline()
             esplit = re.split('\[|,|]', effects)
             for i in range(1, len(esplit)-1):
-                a.addEffect(esplit[i])
+                if not(esplit[i] in sDict):
+                    sDict[esplit[i]] = State(esplit[i])
+                a.addEffect(sDict[esplit[i]])
 
             actions.append(a)
 
         line = f.readline()
 
     f.close()
+
+
+def initializePlan():
+    ivs = []
+    for i in iStates:
+        ivs.append(Vertex(i))
+
+    return Graph(Layer(ivs, None))
+
+
+def precondSatisfied(a, gp):
+    for p in a.preconditions:
+        s = False
+        for v in gp.current.vertices:
+            vs = v.value
+            if vs == p:
+                s = True
+                break
+        if not s:
+            break
+    return s
+
+
+def applyAction(gp):
+    for a in actions:
+        if precondSatisfied(a, gp):
+            print(a.act)
+
+
+def plan():
+    gp = initializePlan()
+    applyAction(gp)
+    # for a in actions:
+    #     for p in gp.current.vertices:
 
 
 def graphPlanGenerate():
@@ -152,12 +116,16 @@ def graphPlanGenerate():
 
     loadFile(inFile)
 
-    for i in iStates:
-        print(i)
-    for g in gStates:
-        print(g)
-    for a in actions:
-        print(a)
+    plan()
+
+    # for i in iStates:
+    #     print(i)
+    # for g in gStates:
+    #     print(g)
+    # for a in actions:
+    #     print((a.act))
+    #     print(a.preconditions)
+    #     print(a.effects)
 
     return 0
 

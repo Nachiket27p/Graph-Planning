@@ -6,8 +6,8 @@ g = nx.Graph()
 g.add_node("Hungry")
 g.add_node("CleanTable")
 
-g.add_edge("Hungry", "Hungry")
-g.add_edge("CleanTable", "Cook")
+g.add_weighted_edges_from([("Hungry", "Hungry", 1)])
+g.add_weighted_edges_from([("CleanTable", "Cook", 2)])
 
 nx.draw(g, with_labels=True)
 plt.show()
