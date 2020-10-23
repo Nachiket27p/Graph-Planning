@@ -67,37 +67,41 @@ def loadFile(inFile):
 
 
 def initializePlan():
-    ivs = []
-    for i in iStates:
-        ivs.append(Vertex(i))
+    initLayer = []
+    for s in iStates:
+        initLayer.append(s)
 
-    return Graph(Layer(ivs, None))
-
-
-def precondSatisfied(a, gp):
-    for p in a.preconditions:
-        s = False
-        for v in gp.current.vertices:
-            vs = v.value
-            if vs == p:
-                s = True
-                break
-        if not s:
-            break
-    return s
+    return Graph(Layer(initLayer))
 
 
-def applyAction(gp):
+def applyActions(gp):
+    actionLayer = Layer([], actionLayer=True)
+    stateLayer = Layer([])
+
+    deleted = []
+
     for a in actions:
-        if precondSatisfied(a, gp):
-            print(a.act)
+        if all(s in gp.current.states for s in a.preconditions):
+            actionLayer.states.append(a)
+            for e in a.effects:
+                if (e not in stateLayer.states):
+                    stateLayer.states.append(e)
+            deleted.extend(a.preconditions)
+
+    gp.addLayer(actionLayer)
+
+    for s in gp.current.prev.states:
+        if (s not in deleted):
+            stateLayer.states.append(s)
+
+    gp.addLayer(stateLayer)
 
 
 def plan():
     gp = initializePlan()
-    applyAction(gp)
-    # for a in actions:
-    #     for p in gp.current.vertices:
+    applyActions(gp)
+
+    print(gp)
 
 
 def graphPlanGenerate():

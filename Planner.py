@@ -27,8 +27,8 @@ class State:
     def __str__(self):
         return self.__name
 
-    # def __repr__(self):
-    #     return self.__name
+    def __repr__(self):
+        return self.__name
 
 
 class Action:
@@ -56,46 +56,40 @@ class Action:
         self.__effects.append(effect)
 
     def __str__(self):
-        return ("Action: " + self.__act +
-                "\n\tPreconditions:\t" +
+        return (self.__act +
+                "\n  Preconditions: " +
                 str(self.__preconditions) +
-                "\n\tEffects:\t" +
+                "\n        Effects: " +
                 str(self.__effects))
 
 
-class Vertex:
-    def __init__(self, value):
-        self.__value = value
-        self.__prev = []
-
-    @property
-    def value(self):
-        return self.__value
-
-    @property
-    def prev(self):
-        return self.__prev
-
-
-# class Edge:
-#     def __inti__(self, v1, v2):
-#         self.__v1 = v1
-#         self.__v2 = v2
-
-
 class Layer:
-    def __init__(self, vertices, prev):
-        self.__vertices = vertices
-        self.__prev = prev
+    def __init__(self, states, actionLayer=False):
+        self.__prev = None
+        self.__states = states
+        self.__actionLayer = actionLayer
         self.__negatedLiterals = []
         self.__inconsistentEffects = []
         self.__inference = []
         self.__competingNeeds = []
         self.__inconsistentSupport = []
+        self.__depth = None
 
     @property
-    def vertices(self):
-        return self.__vertices
+    def depth(self):
+        return self.__depth
+
+    @depth.setter
+    def depth(self, value):
+        self.__depth = value
+
+    @property
+    def actionLayer(self):
+        return self.__actionLayer
+
+    @property
+    def states(self):
+        return self.__states
 
     @property
     def prev(self):
@@ -122,7 +116,7 @@ class Layer:
         return self.__inconsistentSupport
 
     @prev.setter
-    def setter(self, value):
+    def prev(self, value):
         self.__prev = value
 
     def addNL(self, value):
@@ -145,6 +139,7 @@ class Graph:
     def __init__(self, rootLayer):
         self.__root = rootLayer
         self.__current = rootLayer
+        self.__currentDepth = 0
 
     @property
     def root(self):
@@ -154,10 +149,18 @@ class Graph:
     def current(self):
         return self.__current
 
-    def addActionLayer(self, actionLayer):
-        actionLayer.prev = self.__current
-        self.__current = actionLayer
+    def addLayer(self, layer):
+        self.__currentDepth += 1
+        layer.depth = self.__currentDepth
+        layer.prev = self.__current
+        self.__current = layer
 
-    def addStateLayer(self, stateLayer):
-        stateLayer.prev = self.__current
-        self.__current = stateLayer
+    def __str__(self):
+        curr = self.__current
+        gpString = ""
+        while curr:
+            for s in curr.states:
+                gpString += str(s) + "\n"
+            gpString += "--------------------------------------------------------------------------------\n"
+            curr = curr.prev
+        return gpString
