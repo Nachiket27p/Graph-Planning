@@ -8,6 +8,7 @@
 INIT = "Initial"
 GOAL = "Goal"
 INTER = "Intermediate"
+neg = {'+': '-', '-': '+'}
 
 """
 ###############################################################################
@@ -56,48 +57,32 @@ class Action:
         self.__effects.append(effect)
 
     def __str__(self):
-        return (self.__act +
-                "\n  Preconditions: " +
-                str(self.__preconditions) +
-                "\n        Effects: " +
-                str(self.__effects))
+        return self.__act
+
+    def __repr__(self):
+        return self.__act
 
 
-class Layer:
-    def __init__(self, states, actionLayer=False):
+class ActionLayer:
+    def __init__(self):
         self.__prev = None
-        self.__states = states
-        self.__actionLayer = actionLayer
-        self.__negatedLiterals = []
+        self.__actions = []
         self.__inconsistentEffects = []
         self.__inference = []
         self.__competingNeeds = []
-        self.__inconsistentSupport = []
         self.__depth = None
+
+    @property
+    def actions(self):
+        return self.__actions
 
     @property
     def depth(self):
         return self.__depth
 
-    @depth.setter
-    def depth(self, value):
-        self.__depth = value
-
-    @property
-    def actionLayer(self):
-        return self.__actionLayer
-
-    @property
-    def states(self):
-        return self.__states
-
     @property
     def prev(self):
         return self.__prev
-
-    @property
-    def negatedLiterals(self):
-        return self.__negatedLiterals
 
     @property
     def inconsistentEffects(self):
@@ -111,16 +96,16 @@ class Layer:
     def competingNeeds(self):
         return self.__competingNeeds
 
-    @property
-    def inconsistentSupport(self):
-        return self.__inconsistentSupport
-
     @prev.setter
     def prev(self, value):
         self.__prev = value
 
-    def addNL(self, value):
-        self.__negatedLiterals.append(value)
+    @depth.setter
+    def depth(self, value):
+        self.__depth = value
+
+    def addAction(self, action):
+        self.__actions.append(action)
 
     def addIE(self, value):
         self.__inconsistentEffects.append(value)
@@ -131,8 +116,111 @@ class Layer:
     def addCN(self, value):
         self.__competingNeeds.append(value)
 
+    def __str__(self):
+        rtnStr = "ActLayer: <" + str(self.__depth) + ">"
+
+        rtnStr += "\n\tActions: "
+        for i in range(len(self.__actions)):
+            rtnStr += str(self.__actions[i])
+            if i < len(self.__actions)-1:
+                rtnStr += ', '
+
+        rtnStr += "\n\tInconsistent Effects: "
+        for i in range(len(self.__inconsistentEffects)):
+            rtnStr += str(self.__inconsistentEffects[i])
+            if i < len(self.__inconsistentEffects)-1:
+                rtnStr += ', '
+
+        rtnStr += "\n\tInference: "
+        for i in range(len(self.__inference)):
+            rtnStr += str(self.__inference[i])
+            if i < len(self.__inference)-1:
+                rtnStr += ', '
+
+        rtnStr += "\n\tCompeting Needs: "
+        for i in range(len(self.__competingNeeds)):
+            rtnStr += str(self.__competingNeeds[i])
+            if i < len(self.__competingNeeds)-1:
+                rtnStr += ', '
+
+        rtnStr += "\n"
+        return rtnStr
+
+
+class StateLayer:
+    def __init__(self):
+        self.__prev = None
+        self.__literals = []
+        self.__negatedLiterals = []
+        self.__inconsistentSupport = []
+        self.__depth = None
+
+    @property
+    def literals(self):
+        return self.__literals
+
+    @property
+    def depth(self):
+        return self.__depth
+
+    @property
+    def prev(self):
+        return self.__prev
+
+    @property
+    def negatedLiterals(self):
+        return self.__negatedLiterals
+
+    @property
+    def inconsistentSupport(self):
+        return self.__inconsistentSupport
+
+    @prev.setter
+    def prev(self, value):
+        self.__prev = value
+
+    @depth.setter
+    def depth(self, value):
+        self.__depth = value
+
+    def addLiteral(self, literal):
+        self.__literals.append(literal)
+        self.__checkNL(literal)
+
+    def __checkNL(self, nl):
+        for l in self.__literals:
+            if (nl.name[1:] == l.name[1:]) and (neg[nl.name[0]] == l.name[0]):
+                self.addNL((nl, l))
+
+    def addNL(self, value):
+        self.__negatedLiterals.append(value)
+
     def addIS(self, value):
         self.__inconsistentSupport.append(value)
+
+    def __str__(self):
+        rtnStr = "StateLayer: <" + str(self.__depth) + ">"
+
+        rtnStr += "\n\tLiterals: "
+        for i in range(len(self.__literals)):
+            rtnStr += str(self.__literals[i])
+            if i < len(self.__literals)-1:
+                rtnStr += ', '
+
+        rtnStr += "\n\tNegated Literals: "
+        for i in range(len(self.__negatedLiterals)):
+            rtnStr += str(self.__negatedLiterals[i])
+            if i < len(self.__negatedLiterals)-1:
+                rtnStr += ', '
+
+        rtnStr += "\n\tInconsistent Support: "
+        for i in range(len(self.__inconsistentSupport)):
+            rtnStr += str(self.__inconsistentSupport[i])
+            if i < len(self.__inconsistentSupport)-1:
+                rtnStr += ', '
+
+        rtnStr += "\n"
+        return rtnStr
 
 
 class Graph:
@@ -140,6 +228,7 @@ class Graph:
         self.__root = rootLayer
         self.__current = rootLayer
         self.__currentDepth = 0
+        rootLayer.depth = 0
 
     @property
     def root(self):
@@ -159,8 +248,44 @@ class Graph:
         curr = self.__current
         gpString = ""
         while curr:
-            for s in curr.states:
-                gpString += str(s) + "\n"
-            gpString += "--------------------------------------------------------------------------------\n"
+            gpString += str(curr)
             curr = curr.prev
         return gpString
+
+
+"""
+if type(curr) == ActionLayer:
+                gpString += "ActLayer: <" + str(curr.depth) + ">"
+                gpString += "\n\tActions: "
+
+                for i in range(len(curr.actions)):
+                    gpString += str(curr.actions[i])
+                    if i < len(curr.actions)-1:
+                        gpString += ', '
+
+                # for s in curr.actions:
+                #     gpString += str(s) + ", "
+                gpString += "\n\tInconsistent Effects: "
+                for s in curr.inconsistentEffects:
+                    gpString += str(s) + ", "
+                gpString += "\n\tInference: "
+                for s in curr.inference:
+                    gpString += str(s) + ", "
+                gpString += "\n\tCompeting Needs: "
+                for s in curr.competingNeeds:
+                    gpString += str(s) + ", "
+                gpString += "\n"
+
+            else:
+                gpString += "StateLayer: <" + str(curr.depth) + ">"
+                gpString += "\n\tLiterals: "
+                for s in curr.literals:
+                    gpString += str(s) + ", "
+                gpString += "\n\tNegated Literals: "
+                for s in curr.negatedLiterals:
+                    gpString += str(s) + ", "
+                gpString += "\n\tInconsistent Support: "
+                for s in curr.inconsistentSupport:
+                    gpString += str(s) + ", "
+                gpString += "\n"
+"""

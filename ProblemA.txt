@@ -6,6 +6,14 @@ Act [Cook]
 Preconditions [+CleanTable]
 Effects [+Dinner]
 
+Act [Play]
+Preconditions [+CleanTable]
+Effects [-Dinner]
+
+Act [Sleep]
+Preconditions [+CleanTable]
+Effects [-Dinner]
+
 Act [Eat]
 Preconditions [+Dinner,+Hungry]
 Effects [-Hungry,-CleanTable,-Dinner]
