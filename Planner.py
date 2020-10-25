@@ -20,10 +20,20 @@ neg = {'+': '-', '-': '+'}
 class State:
     def __init__(self, name):
         self.__name = name
+        self.__preconditions = [self]
+        self.__effects = [self]
 
     @property
     def name(self):
         return self.__name
+
+    @property
+    def preconditions(self):
+        return self.__preconditions
+
+    @property
+    def effects(self):
+        return self.__effects
 
     def __str__(self):
         return self.__name
