@@ -1,0 +1,23 @@
+StateLayer: <4>
+	Literals: +Hungry, +CleanTable, +Dinner, -Hungry, -CleanTable, -Dinner
+	Negated Literals: (-Hungry, +Hungry), (-CleanTable, +CleanTable), (-Dinner, +Dinner)
+	Inconsistent Support: (+Hungry, -Hungry), (+Hungry, -CleanTable), (+Hungry, -Dinner), (+CleanTable, -Hungry), (+CleanTable, -CleanTable), (+CleanTable, -Dinner), (+Dinner, -Hungry), (+Dinner, -CleanTable), (+Dinner, -Dinner)
+ActLayer: <3>
+	Actions: +Hungry, +CleanTable, +Dinner, Cook, Eat
+	Inconsistent Effects: (Eat, +Hungry), (Eat, +CleanTable), (Eat, +Dinner), (Eat, Cook)
+	interference: (Eat, +Hungry), (Eat, +CleanTable), (Eat, +Dinner), (Eat, Cook)
+	Competing Needs: 
+StateLayer: <2>
+	Literals: +Hungry, +CleanTable, +Dinner
+	Negated Literals: 
+	Inconsistent Support: 
+ActLayer: <1>
+	Actions: +Hungry, +CleanTable, Cook
+	Inconsistent Effects: 
+	interference: 
+	Competing Needs: 
+StateLayer: <0>
+	Literals: +Hungry, +CleanTable
+	Negated Literals: 
+	Inconsistent Support: 
+

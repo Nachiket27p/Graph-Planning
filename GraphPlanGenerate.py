@@ -19,7 +19,7 @@ iStates = []
 gStates = []
 actions = []
 sDict = dict()
-
+negate = dict()
 """
 ###############################################################################
                                     Functions
@@ -47,63 +47,73 @@ def loadFile(inFile):
             preconds = f.readline()
             psplit = re.split('\[|,|]', preconds)
             for i in range(1, len(psplit)-1):
-                if not(psplit[i] in sDict):
-                    sDict[psplit[i]] = State(psplit[i])
-                a.addPrecondition(sDict[psplit[i]])
+                pc = psplit[i]
+                if not(pc in sDict):
+                    sDict[pc] = State(pc)
+                a.addPrecondition(sDict[pc])
 
             effects = f.readline()
             esplit = re.split('\[|,|]', effects)
             for i in range(1, len(esplit)-1):
-                if not(esplit[i] in sDict):
-                    sDict[esplit[i]] = State(esplit[i])
-                a.addEffect(sDict[esplit[i]])
+                ef = esplit[i]
+                if not(ef in sDict):
+                    sDict[ef] = State(ef)
+                a.addEffect(sDict[ef])
 
             actions.append(a)
 
         line = f.readline()
 
+    # create a dictionary for negated literals
+    for key in sDict:
+        s = sDict[key]
+        nkey = "" + neg[key[0]] + key[1:]
+        if nkey in sDict:
+            negate[s] = sDict[nkey]
+        else:
+            ns = State(nkey)
+            negate[s] = ns
+            negate[ns] = s
+
     f.close()
 
 
-def initializePlan():
-    initStateLayer = StateLayer()
-    for s in iStates:
-        initStateLayer.addLiteral(s)
-    return Graph(initStateLayer)
-
-
-def areNegated(s1, s2):
-    if (s1.name[1:] == s2.name[1:]) and (neg[s1.name[0]] == s2.name[0]):
-        return True
-    return False
+# def areNegated(s1, s2):
+#     if (s1.name[1:] == s2.name[1:]) and (neg[s1.name[0]] == s2.name[0]):
+#         return True
+#     return False
 
 
 def mutexNL(sl):
     sLen = len(sl.literals)
     for i in range(sLen):
-        s1 = sl.literals[i].name
+        l1 = sl.literals[i]
         for j in range(i+1, sLen):
-            s2 = sl.literals[j].name
-            if (s1[1:] == s2[1:]) and (neg[s1[0]] == s2[0]):
-                sl.addNL((s1, s2))
+            l2 = sl.literals[j]
+            if negate[l1] == l2:
+                sl.addNL((l1, l2))
 
 
-def mutexISHelper(sl, mutexes):
-    for amp in mutexes:
-        for e1 in amp[0].effects:
-            for e2 in amp[1].effects:
-                if e1 != e2:
-                    p1 = (e1, e2)
-                    p2 = (e2, e1)
-                    if ((p1 not in sl.inconsistentSupport)
-                            and (p2 not in sl.inconsistentSupport)):
-                        sl.addIS(p1)
+def mutexISHelper(l1, l2, al, eDict):
+    for a1 in eDict[l1]:
+        for a2 in eDict[l2]:
+            # if any one of pairs are no mutex than l1 and l2
+            # cannot be mutexes so return
+            if not al.areMutex(a1, a2):
+                return False
+    return True
 
 
-def mutexIS(sl, al):
-    mutexISHelper(sl, al.inconsistentEffects)
-    mutexISHelper(sl, al.inference)
-    mutexISHelper(sl, al.competingNeeds)
+def mutexIS(sl, eDict):
+    sLen = len(sl.literals)
+    for i in range(sLen):
+        l1 = sl.literals[i]
+        for j in range(i+1, sLen):
+            l2 = sl.literals[j]
+            if mutexISHelper(l1, l2, sl.prev, eDict):
+                # if all action that cause l1 are mutex with all
+                # the action that cause l2 are mutex then l1 and l2 are mutex
+                sl.addIS((l1, l2))
 
 
 def mutexIE(al, ne):
@@ -117,19 +127,49 @@ def mutexI(al):
     aLen = len(al.actions)
     for i in range(aLen):
         a1 = al.actions[i]
-        for j in range(i+1, aLen):
-            a2 = al.actions[j]
-            if any(item in a1.effects for item in a2.preconditions):
-                al.addI((a1, a2))
+        for j in range(aLen):
+            if i != j:
+                a2 = al.actions[j]
+                for e in a1.effects:
+                    for p in a2.preconditions:
+                        if negate[e] == p:
+                            al.addI((a1, a2))
+                        # if areNegated(e, p):
+                        #     al.addI((a1, a2))
 
 
 def mutexCN(al):
-    # TODO
-    return
+    pl = al.prev
+    aLen = len(al.actions)
+    for i in range(aLen):
+        a1 = al.actions[i]
+        for j in range(i+1, aLen):
+            a2 = al.actions[j]
+
+            for p1 in a1.preconditions:
+                for p2 in a2.preconditions:
+                    if (((p1, p2) in pl.negatedLiterals) |
+                            ((p2, p1) in pl.negatedLiterals) |
+                            ((p1, p2) in pl.inconsistentSupport) |
+                            ((p2, p1) in pl.inconsistentSupport)):
+                        al.addCN((a1, a2))
+
+
+def initializePlan():
+    initStateLayer = StateLayer()
+    for s in iStates:
+        initStateLayer.addLiteral(s)
+    return Graph(initStateLayer)
 
 
 def applyActions(gp):
+    eDict = dict()
+
     actionLayer = ActionLayer()
+
+    # add all the persistant literals from the previous layer
+    for l in gp.current.literals:
+        actionLayer.addAction(l)
 
     stateLayer = StateLayer()
 
@@ -137,6 +177,8 @@ def applyActions(gp):
     # also takes care of 'Negated Literals mutexes'
     for s in gp.current.literals:
         stateLayer.addLiteral(s)
+        # make a mapping for effect to what action caused it
+        eDict[s] = [s]
 
     for a in actions:
         if all(s in gp.current.literals for s in a.preconditions):
@@ -148,27 +190,36 @@ def applyActions(gp):
 
                 # Inconsistent Effect mutexes
                 for l in stateLayer.literals:
-                    if areNegated(e, l):
+                    if negate[e] == l:
                         mutexIE(actionLayer, l)
+                    # if areNegated(e, l):
+                    #     mutexIE(actionLayer, l)
+
+                # make a mapping for effect to what action caused it
+                if e in eDict:
+                    eDict[e].append(a)
+                else:
+                    eDict[e] = [a]
 
     gp.addLayer(actionLayer)
 
     gp.addLayer(stateLayer)
 
-    # Inference mutexes
+    # interference mutexes
     mutexI(actionLayer)
 
     # Competing Needs mutexes
     mutexCN(actionLayer)
 
     # Inconsistent Support mutexes
-    mutexIS(stateLayer, actionLayer)
+    mutexIS(stateLayer, eDict)
 
 
 def plan():
     gp = initializePlan()
 
     # apply action and produce the next state layer
+    applyActions(gp)
     applyActions(gp)
 
     print(gp)

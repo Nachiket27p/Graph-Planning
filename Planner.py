@@ -78,7 +78,7 @@ class ActionLayer:
         self.__prev = None
         self.__actions = []
         self.__inconsistentEffects = []
-        self.__inference = []
+        self.__interference = []
         self.__competingNeeds = []
         self.__depth = None
 
@@ -99,8 +99,8 @@ class ActionLayer:
         return self.__inconsistentEffects
 
     @property
-    def inference(self):
-        return self.__inference
+    def interference(self):
+        return self.__interference
 
     @property
     def competingNeeds(self):
@@ -121,10 +121,20 @@ class ActionLayer:
         self.__inconsistentEffects.append(value)
 
     def addI(self, value):
-        self.__inference.append(value)
+        self.__interference.append(value)
 
     def addCN(self, value):
         self.__competingNeeds.append(value)
+
+    def areMutex(self, a1, a2):
+        if (((a1, a2) in self.__inconsistentEffects)
+                | ((a2, a1) in self.__inconsistentEffects)
+                | ((a1, a2) in self.__interference)
+                | ((a2, a1) in self.__interference)
+                | ((a1, a2) in self.__competingNeeds)
+                | ((a2, a1) in self.__competingNeeds)):
+            return True
+        return False
 
     def __str__(self):
         rtnStr = "ActLayer: <" + str(self.__depth) + ">"
@@ -141,10 +151,10 @@ class ActionLayer:
             if i < len(self.__inconsistentEffects)-1:
                 rtnStr += ', '
 
-        rtnStr += "\n\tInference: "
-        for i in range(len(self.__inference)):
-            rtnStr += str(self.__inference[i])
-            if i < len(self.__inference)-1:
+        rtnStr += "\n\tinterference: "
+        for i in range(len(self.__interference)):
+            rtnStr += str(self.__interference[i])
+            if i < len(self.__interference)-1:
                 rtnStr += ', '
 
         rtnStr += "\n\tCompeting Needs: "
@@ -165,31 +175,31 @@ class StateLayer:
         self.__inconsistentSupport = []
         self.__depth = None
 
-    @property
+    @ property
     def literals(self):
         return self.__literals
 
-    @property
+    @ property
     def depth(self):
         return self.__depth
 
-    @property
+    @ property
     def prev(self):
         return self.__prev
 
-    @property
+    @ property
     def negatedLiterals(self):
         return self.__negatedLiterals
 
-    @property
+    @ property
     def inconsistentSupport(self):
         return self.__inconsistentSupport
 
-    @prev.setter
+    @ prev.setter
     def prev(self, value):
         self.__prev = value
 
-    @depth.setter
+    @ depth.setter
     def depth(self, value):
         self.__depth = value
 
@@ -240,11 +250,11 @@ class Graph:
         self.__currentDepth = 0
         rootLayer.depth = 0
 
-    @property
+    @ property
     def root(self):
         return self.__root
 
-    @property
+    @ property
     def current(self):
         return self.__current
 
@@ -278,8 +288,8 @@ if type(curr) == ActionLayer:
                 gpString += "\n\tInconsistent Effects: "
                 for s in curr.inconsistentEffects:
                     gpString += str(s) + ", "
-                gpString += "\n\tInference: "
-                for s in curr.inference:
+                gpString += "\n\tinterference: "
+                for s in curr.interference:
                     gpString += str(s) + ", "
                 gpString += "\n\tCompeting Needs: "
                 for s in curr.competingNeeds:
