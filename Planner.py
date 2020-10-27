@@ -38,8 +38,8 @@ class State:
     def __str__(self):
         return self.__name
 
-    def __repr__(self):
-        return self.__name
+    # def __repr__(self):
+    #     return self.__name
 
 
 class Action:
@@ -69,17 +69,17 @@ class Action:
     def __str__(self):
         return self.__act
 
-    def __repr__(self):
-        return self.__act
+    # def __repr__(self):
+    #     return self.__act
 
 
 class ActionLayer:
     def __init__(self):
         self.__prev = None
-        self.__actions = []
-        self.__inconsistentEffects = []
-        self.__interference = []
-        self.__competingNeeds = []
+        self.__actions = dict()
+        self.__inconsistentEffects = dict()
+        self.__interference = dict()
+        self.__competingNeeds = dict()
         self.__depth = None
 
     @property
@@ -115,24 +115,42 @@ class ActionLayer:
         self.__depth = value
 
     def addAction(self, action):
-        self.__actions.append(action)
+        if action not in self.__actions:
+            self.__actions[action] = action
 
-    def addIE(self, value):
-        self.__inconsistentEffects.append(value)
+    def addIE(self, act1, act2):
+        if ((act1 not in self.__inconsistentEffects)
+                and (act2 not in self.__inconsistentEffects)):
+            self.__inconsistentEffects[act1] = act2
 
-    def addI(self, value):
-        self.__interference.append(value)
+    def addI(self, act1, act2):
+        if ((act1 not in self.__interference)
+                and (act2 not in self.__interference)):
+            self.__interference[act1] = act2
 
-    def addCN(self, value):
-        self.__competingNeeds.append(value)
+    def addCN(self, act1, act2):
+        if ((act1 not in self.__competingNeeds)
+                and (act2 not in self.__competingNeeds)):
+            self.__competingNeeds[act1] = act2
 
     def areMutex(self, a1, a2):
-        if (((a1, a2) in self.__inconsistentEffects)
-                | ((a2, a1) in self.__inconsistentEffects)
-                | ((a1, a2) in self.__interference)
-                | ((a2, a1) in self.__interference)
-                | ((a1, a2) in self.__competingNeeds)
-                | ((a2, a1) in self.__competingNeeds)):
+        a = ((a1 in self.__inconsistentEffects) and (
+            a2 == self.__inconsistentEffects[a1]))
+        a = ((a2 in self.__inconsistentEffects) and (
+            a1 == self.__inconsistentEffects[a2]))
+        a = ((a1 in self.__interference) and (a2 == self.__interference[a1]))
+        a = ((a2 in self.__interference) and (a1 == self.__interference[a2]))
+        a = ((a1 in self.__competingNeeds) and (
+            a2 == self.__competingNeeds[a1]))
+        a = ((a2 in self.__competingNeeds) and (
+            a1 == self.__competingNeeds[a2]))
+
+        if (((a1 in self.__inconsistentEffects) and (a2 == self.__inconsistentEffects[a1]))
+                | ((a2 in self.__inconsistentEffects) and (a1 == self.__inconsistentEffects[a2]))
+                | ((a1 in self.__interference) and (a2 == self.__interference[a1]))
+                | ((a2 in self.__interference) and (a1 == self.__interference[a2]))
+                | ((a1 in self.__competingNeeds) and (a2 == self.__competingNeeds[a1]))
+                | ((a2 in self.__competingNeeds) and (a1 == self.__competingNeeds[a2]))):
             return True
         return False
 
@@ -140,28 +158,23 @@ class ActionLayer:
         rtnStr = "ActLayer: <" + str(self.__depth) + ">"
 
         rtnStr += "\n\tActions: "
-        for i in range(len(self.__actions)):
-            rtnStr += str(self.__actions[i])
-            if i < len(self.__actions)-1:
-                rtnStr += ', '
+        for key in self.__actions:
+            rtnStr += str(key) + ", "
 
         rtnStr += "\n\tInconsistent Effects: "
-        for i in range(len(self.__inconsistentEffects)):
-            rtnStr += str(self.__inconsistentEffects[i])
-            if i < len(self.__inconsistentEffects)-1:
-                rtnStr += ', '
+        for key in self.__inconsistentEffects:
+            rtnStr += "(" + str(key) + "," + \
+                str(self.__inconsistentEffects[key]) + "), "
 
         rtnStr += "\n\tinterference: "
-        for i in range(len(self.__interference)):
-            rtnStr += str(self.__interference[i])
-            if i < len(self.__interference)-1:
-                rtnStr += ', '
+        for key in self.__interference:
+            rtnStr += "(" + str(key) + "," + \
+                str(self.__interference[key]) + "), "
 
         rtnStr += "\n\tCompeting Needs: "
-        for i in range(len(self.__competingNeeds)):
-            rtnStr += str(self.__competingNeeds[i])
-            if i < len(self.__competingNeeds)-1:
-                rtnStr += ', '
+        for key in self.__competingNeeds:
+            rtnStr += "(" + str(key) + "," + \
+                str(self.__competingNeeds[key]) + "), "
 
         rtnStr += "\n"
         return rtnStr
@@ -170,9 +183,9 @@ class ActionLayer:
 class StateLayer:
     def __init__(self):
         self.__prev = None
-        self.__literals = []
-        self.__negatedLiterals = []
-        self.__inconsistentSupport = []
+        self.__literals = dict()
+        self.__negatedLiterals = dict()
+        self.__inconsistentSupport = dict()
         self.__depth = None
 
     @ property
@@ -204,40 +217,43 @@ class StateLayer:
         self.__depth = value
 
     def addLiteral(self, literal):
-        self.__literals.append(literal)
-        self.__checkNL(literal)
+        if literal not in self.__literals:
+            self.__literals[literal] = literal
 
-    def __checkNL(self, nl):
-        for l in self.__literals:
-            if (nl.name[1:] == l.name[1:]) and (neg[nl.name[0]] == l.name[0]):
-                self.addNL((nl, l))
+    def addNL(self, lit, nlit):
+        if ((lit not in self.__negatedLiterals)
+                and (nlit not in self.__negatedLiterals)):
+            self.__negatedLiterals[lit] = nlit
 
-    def addNL(self, value):
-        self.__negatedLiterals.append(value)
+    def addIS(self, lit1, lit2):
+        if ((lit1 not in self.__inconsistentSupport)
+                and (lit2 not in self.__inconsistentSupport)):
+            self.__inconsistentSupport[lit1] = lit2
 
-    def addIS(self, value):
-        self.__inconsistentSupport.append(value)
+    def areMutex(self, l1, l2):
+        if (((l1 in self.__negatedLiterals) and (l2 == self.__negatedLiterals[l1]))
+                | ((l2 in self.__negatedLiterals) and (l1 == self.__negatedLiterals[l2]))
+                | ((l1 in self.__inconsistentSupport) and (l2 == self.__inconsistentSupport[l1]))
+                | ((l2 in self.__inconsistentSupport) and (l1 == self.__inconsistentSupport[l2]))):
+            return True
+        return False
 
     def __str__(self):
         rtnStr = "StateLayer: <" + str(self.__depth) + ">"
 
         rtnStr += "\n\tLiterals: "
-        for i in range(len(self.__literals)):
-            rtnStr += str(self.__literals[i])
-            if i < len(self.__literals)-1:
-                rtnStr += ', '
+        for key in self.__literals:
+            rtnStr += str(key) + ", "
 
         rtnStr += "\n\tNegated Literals: "
-        for i in range(len(self.__negatedLiterals)):
-            rtnStr += str(self.__negatedLiterals[i])
-            if i < len(self.__negatedLiterals)-1:
-                rtnStr += ', '
+        for key in self.__negatedLiterals:
+            rtnStr += "(" + str(key) + "," + \
+                str(self.__negatedLiterals[key]) + "), "
 
         rtnStr += "\n\tInconsistent Support: "
-        for i in range(len(self.__inconsistentSupport)):
-            rtnStr += str(self.__inconsistentSupport[i])
-            if i < len(self.__inconsistentSupport)-1:
-                rtnStr += ', '
+        for key in self.__inconsistentSupport:
+            rtnStr += "(" + str(key) + "," + \
+                str(self.__inconsistentSupport[key]) + "), "
 
         rtnStr += "\n"
         return rtnStr

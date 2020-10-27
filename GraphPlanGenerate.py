@@ -85,13 +85,9 @@ def loadFile(inFile):
 
 
 def mutexNL(sl):
-    sLen = len(sl.literals)
-    for i in range(sLen):
-        l1 = sl.literals[i]
-        for j in range(i+1, sLen):
-            l2 = sl.literals[j]
-            if negate[l1] == l2:
-                sl.addNL((l1, l2))
+    for key in sl.literals:
+        if negate[key] in sl.literals:
+            sl.addNL(key, negate[key])
 
 
 def mutexISHelper(l1, l2, al, eDict):
@@ -105,54 +101,51 @@ def mutexISHelper(l1, l2, al, eDict):
 
 
 def mutexIS(sl, eDict):
-    sLen = len(sl.literals)
+    lit = list(sl.literals)
+    sLen = len(lit)
+
     for i in range(sLen):
-        l1 = sl.literals[i]
+        l1 = lit[i]
         for j in range(i+1, sLen):
-            l2 = sl.literals[j]
+            l2 = lit[j]
+            # if all action that cause l1 are mutex with all
+            # the action that cause l2 are mutex then l1 and l2 are mutex
             if mutexISHelper(l1, l2, sl.prev, eDict):
-                # if all action that cause l1 are mutex with all
-                # the action that cause l2 are mutex then l1 and l2 are mutex
-                sl.addIS((l1, l2))
+                sl.addIS(l1, l2)
 
 
-def mutexIE(al, ne):
-    aLen = len(al.actions)
-    for i in range(aLen-1):
-        if ne in al.actions[i].effects:
-            al.addIE((al.actions[-1], al.actions[i]))
+def mutexIE(al, sl):
+    for act in al.actions:
+        for e in act.effects:
+            ne = negate[e]
+            if ne in sl.literals:
+                for otherAct in al.actions:
+                    if (act != otherAct) and (ne in otherAct.effects):
+                        al.addIE(act, otherAct)
 
 
-def mutexI(al):
-    aLen = len(al.actions)
-    for i in range(aLen):
-        a1 = al.actions[i]
-        for j in range(aLen):
-            if i != j:
-                a2 = al.actions[j]
-                for e in a1.effects:
-                    for p in a2.preconditions:
-                        if negate[e] == p:
-                            al.addI((a1, a2))
-                        # if areNegated(e, p):
-                        #     al.addI((a1, a2))
+def mutexI(al, sl):
+    for act in al.actions:
+        for p in act.preconditions:
+            ne = negate[p]
+            if ne in sl.literals:
+                for otherAct in al.actions:
+                    if (act != otherAct) and (ne in otherAct.effects):
+                        al.addI(act, otherAct)
 
 
 def mutexCN(al):
     pl = al.prev
-    aLen = len(al.actions)
+    actionList = list(al.actions)
+    aLen = len(actionList)
     for i in range(aLen):
-        a1 = al.actions[i]
+        act = actionList[i]
         for j in range(i+1, aLen):
-            a2 = al.actions[j]
-
-            for p1 in a1.preconditions:
-                for p2 in a2.preconditions:
-                    if (((p1, p2) in pl.negatedLiterals) |
-                            ((p2, p1) in pl.negatedLiterals) |
-                            ((p1, p2) in pl.inconsistentSupport) |
-                            ((p2, p1) in pl.inconsistentSupport)):
-                        al.addCN((a1, a2))
+            otherAct = actionList[j]
+            for p1 in act.preconditions:
+                for p2 in otherAct.preconditions:
+                    if pl.areMutex(p1, p2):
+                        al.addCN(act, otherAct)
 
 
 def initializePlan():
@@ -188,13 +181,6 @@ def applyActions(gp):
                 if (e not in stateLayer.literals):
                     stateLayer.addLiteral(e)
 
-                # Inconsistent Effect mutexes
-                for l in stateLayer.literals:
-                    if negate[e] == l:
-                        mutexIE(actionLayer, l)
-                    # if areNegated(e, l):
-                    #     mutexIE(actionLayer, l)
-
                 # make a mapping for effect to what action caused it
                 if e in eDict:
                     eDict[e].append(a)
@@ -205,12 +191,15 @@ def applyActions(gp):
 
     gp.addLayer(stateLayer)
 
+    # inconsistent effect
+    mutexIE(actionLayer, stateLayer)
     # interference mutexes
-    mutexI(actionLayer)
-
+    mutexI(actionLayer, stateLayer)
     # Competing Needs mutexes
     mutexCN(actionLayer)
 
+    # negated literal
+    mutexNL(stateLayer)
     # Inconsistent Support mutexes
     mutexIS(stateLayer, eDict)
 
