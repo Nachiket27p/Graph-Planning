@@ -13,3 +13,16 @@ else:
 
 for k in x:
     print((k, x[k]))
+
+print("\n")
+s1 = "+Hungry"
+s2 = "Eat"
+
+print(s1 > s2)
+
+
+x1 = ["a", "b", "c"]
+x2 = ["a", "b", "c"]
+
+print("\n")
+print(x1 == x2)

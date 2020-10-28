@@ -41,16 +41,19 @@ class State:
     def __repr__(self):
         return self.__name
 
+    def __le__(self, other):
+        return (self.__name <= other.name)
+
 
 class Action:
-    def __init__(self, act):
-        self.__act = act
+    def __init__(self, name):
+        self.__name = name
         self.__preconditions = []
         self.__effects = []
 
     @property
-    def act(self):
-        return self.__act
+    def name(self):
+        return self.__name
 
     @property
     def preconditions(self):
@@ -67,20 +70,32 @@ class Action:
         self.__effects.append(effect)
 
     def __str__(self):
-        return self.__act
+        return self.__name
 
     def __repr__(self):
-        return self.__act
+        return self.__name
+
+    def __le__(self, other):
+        return (self.__name <= other.name)
 
 
 class ActionLayer:
     def __init__(self):
         self.__prev = None
+        self.__next = None
         self.__actions = []
         self.__inconsistentEffects = []
         self.__interference = []
         self.__competingNeeds = []
         self.__depth = None
+
+    @property
+    def prev(self):
+        return self.__prev
+
+    @ property
+    def next(self):
+        return self.__next
 
     @property
     def actions(self):
@@ -89,10 +104,6 @@ class ActionLayer:
     @property
     def depth(self):
         return self.__depth
-
-    @property
-    def prev(self):
-        return self.__prev
 
     @property
     def inconsistentEffects(self):
@@ -110,6 +121,10 @@ class ActionLayer:
     def prev(self, value):
         self.__prev = value
 
+    @ next.setter
+    def next(self, value):
+        self.__next = value
+
     @depth.setter
     def depth(self, value):
         self.__depth = value
@@ -117,22 +132,42 @@ class ActionLayer:
     def addAction(self, action):
         self.__actions.append(action)
 
-    def addIE(self, value):
-        self.__inconsistentEffects.append(value)
+    def addIE(self, a1, a2):
+        if a1 != a2:
+            if a1 <= a2:
+                self.__inconsistentEffects.append((a1, a2))
+            else:
+                self.__inconsistentEffects.append((a2, a1))
 
-    def addI(self, value):
-        self.__interference.append(value)
+    def addI(self, a1, a2):
+        if a1 != a2:
+            if a1 <= a2:
+                self.__interference.append((a1, a2))
+            else:
+                self.__interference.append((a2, a1))
 
-    def addCN(self, value):
-        self.__competingNeeds.append(value)
+    def addCN(self, a1, a2):
+        if a1 != a2:
+            if a1 <= a2:
+                self.__competingNeeds.append((a1, a2))
+            else:
+                self.__competingNeeds.append((a2, a1))
 
     def areMutex(self, a1, a2):
+        if a2 <= a1:
+            a1, a2 = a2, a1
+
         if (((a1, a2) in self.__inconsistentEffects)
-                | ((a2, a1) in self.__inconsistentEffects)
                 | ((a1, a2) in self.__interference)
-                | ((a2, a1) in self.__interference)
-                | ((a1, a2) in self.__competingNeeds)
-                | ((a2, a1) in self.__competingNeeds)):
+                | ((a1, a2) in self.__competingNeeds)):
+            return True
+        return False
+
+    def __eq__(self, other):
+        if ((self.__actions == other.actions)
+                and (self.__inconsistentEffects == other.__inconsistentEffects)
+                and (self.__interference == other.__interference)
+                and (self.__competingNeeds == other.__competingNeeds)):
             return True
         return False
 
@@ -141,9 +176,10 @@ class ActionLayer:
 
         rtnStr += "\n\tActions: "
         for i in range(len(self.__actions)):
-            rtnStr += str(self.__actions[i])
-            if i < len(self.__actions)-1:
-                rtnStr += ', '
+            if isinstance(self.__actions[i], Action):
+                rtnStr += str(self.__actions[i])
+                if i < len(self.__actions)-1:
+                    rtnStr += ', '
 
         rtnStr += "\n\tInconsistent Effects: "
         for i in range(len(self.__inconsistentEffects)):
@@ -170,10 +206,19 @@ class ActionLayer:
 class StateLayer:
     def __init__(self):
         self.__prev = None
+        self.__next = None
         self.__literals = []
         self.__negatedLiterals = []
         self.__inconsistentSupport = []
         self.__depth = None
+
+    @ property
+    def prev(self):
+        return self.__prev
+
+    @ property
+    def next(self):
+        return self.__next
 
     @ property
     def literals(self):
@@ -182,10 +227,6 @@ class StateLayer:
     @ property
     def depth(self):
         return self.__depth
-
-    @ property
-    def prev(self):
-        return self.__prev
 
     @ property
     def negatedLiterals(self):
@@ -199,24 +240,46 @@ class StateLayer:
     def prev(self, value):
         self.__prev = value
 
+    @ next.setter
+    def next(self, value):
+        self.__next = value
+
     @ depth.setter
     def depth(self, value):
         self.__depth = value
 
     def addLiteral(self, literal):
         self.__literals.append(literal)
-        self.__checkNL(literal)
 
-    def __checkNL(self, nl):
-        for l in self.__literals:
-            if (nl.name[1:] == l.name[1:]) and (neg[nl.name[0]] == l.name[0]):
-                self.addNL((nl, l))
+    def addNL(self, l1, l2):
+        if l1 != l2:
+            if l1 <= l2:
+                self.__negatedLiterals.append((l1, l2))
+            else:
+                self.__negatedLiterals.append((l2, l1))
 
-    def addNL(self, value):
-        self.__negatedLiterals.append(value)
+    def addIS(self, l1, l2):
+        if l1 != l2:
+            if l1 <= l2:
+                self.__inconsistentSupport.append((l1, l2))
+            else:
+                self.__inconsistentSupport.append((l2, l1))
 
-    def addIS(self, value):
-        self.__inconsistentSupport.append(value)
+    def areMutex(self, l1, l2):
+        if l2 <= l1:
+            l1, l2 = l2, l1
+
+        if (((l1, l2) in self.__negatedLiterals)
+                | ((l1, l2) in self.__inconsistentSupport)):
+            return True
+        return False
+
+    def __eq__(self, other):
+        if ((self.__literals == other.literals)
+                and (self.__negatedLiterals == other.negatedLiterals)
+                and (self.__inconsistentSupport == other.__inconsistentSupport)):
+            return True
+        return False
 
     def __str__(self):
         rtnStr = "StateLayer: <" + str(self.__depth) + ">"
@@ -262,50 +325,18 @@ class Graph:
         self.__currentDepth += 1
         layer.depth = self.__currentDepth
         layer.prev = self.__current
+        self.__current.next = layer
         self.__current = layer
 
+    def writeOut(self, outFile):
+        of = open(outFile, "w")
+        of.write(str(self))
+        of.close()
+
     def __str__(self):
-        curr = self.__current
+        curr = self.__root
         gpString = ""
         while curr:
             gpString += str(curr)
-            curr = curr.prev
+            curr = curr.next
         return gpString
-
-
-"""
-if type(curr) == ActionLayer:
-                gpString += "ActLayer: <" + str(curr.depth) + ">"
-                gpString += "\n\tActions: "
-
-                for i in range(len(curr.actions)):
-                    gpString += str(curr.actions[i])
-                    if i < len(curr.actions)-1:
-                        gpString += ', '
-
-                # for s in curr.actions:
-                #     gpString += str(s) + ", "
-                gpString += "\n\tInconsistent Effects: "
-                for s in curr.inconsistentEffects:
-                    gpString += str(s) + ", "
-                gpString += "\n\tinterference: "
-                for s in curr.interference:
-                    gpString += str(s) + ", "
-                gpString += "\n\tCompeting Needs: "
-                for s in curr.competingNeeds:
-                    gpString += str(s) + ", "
-                gpString += "\n"
-
-            else:
-                gpString += "StateLayer: <" + str(curr.depth) + ">"
-                gpString += "\n\tLiterals: "
-                for s in curr.literals:
-                    gpString += str(s) + ", "
-                gpString += "\n\tNegated Literals: "
-                for s in curr.negatedLiterals:
-                    gpString += str(s) + ", "
-                gpString += "\n\tInconsistent Support: "
-                for s in curr.inconsistentSupport:
-                    gpString += str(s) + ", "
-                gpString += "\n"
-"""

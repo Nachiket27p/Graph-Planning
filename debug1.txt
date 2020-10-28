@@ -47,3 +47,4 @@ StateLayer: <10>
 	Literals: +Hungry, +CleanTable, +Dinner, -Hungry, -CleanTable, -Dinner
 	Negated Literals: (+Hungry, -Hungry), (+CleanTable, -CleanTable), (+Dinner, -Dinner)
 	Inconsistent Support: (+Hungry, -Hungry), (+Hungry, -CleanTable), (+Hungry, -Dinner), (+CleanTable, -CleanTable), (+Dinner, -CleanTable), (+Dinner, -Dinner)
+

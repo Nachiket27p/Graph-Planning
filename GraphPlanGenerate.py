@@ -13,13 +13,13 @@ __email__ = 'nnpatel5@ncsu.edu'
                                 Global Variables
 ###############################################################################
 """
-# expected number of arguments
-nArgExpected = 2 + 1  # +1 is for the filename itself
-iStates = []
-gStates = []
-actions = []
-sDict = dict()
-negate = dict()
+# # expected number of arguments
+# nArgExpected = 2 + 1  # +1 is for the filename itself
+# iStates = []
+# gStates = []
+# actions = []
+# sDict = dict()
+# negate = dict()
 """
 ###############################################################################
                                     Functions
@@ -27,7 +27,7 @@ negate = dict()
 """
 
 
-def loadFile(inFile):
+def loadFile(inFile, iStates, gStates, actions, sDict, negate):
     f = open(inFile, 'r')
     line = f.readline()
     while line:
@@ -78,20 +78,28 @@ def loadFile(inFile):
     f.close()
 
 
-# def areNegated(s1, s2):
-#     if (s1.name[1:] == s2.name[1:]) and (neg[s1.name[0]] == s2.name[0]):
-#         return True
-#     return False
+def displayFile(inFile):
+    print("\nThe problem in the file " + inFile +
+          " will be solved with graph planning:\n")
+    f = open(inFile, 'r')
+
+    print("################################################################################")
+    print("\t\t\t\t" + inFile)
+    print("################################################################################")
+
+    print(f.read())
+
+    f.close()
 
 
-def mutexNL(sl):
+def mutexNL(sl, negate):
     sLen = len(sl.literals)
     for i in range(sLen):
         l1 = sl.literals[i]
         for j in range(i+1, sLen):
             l2 = sl.literals[j]
             if negate[l1] == l2:
-                sl.addNL((l1, l2))
+                sl.addNL(l1, l2)
 
 
 def mutexISHelper(l1, l2, al, eDict):
@@ -113,29 +121,44 @@ def mutexIS(sl, eDict):
             if mutexISHelper(l1, l2, sl.prev, eDict):
                 # if all action that cause l1 are mutex with all
                 # the action that cause l2 are mutex then l1 and l2 are mutex
-                sl.addIS((l1, l2))
+                sl.addIS(l1, l2)
 
 
-def mutexIE(al, ne):
-    aLen = len(al.actions)
-    for i in range(aLen-1):
-        if ne in al.actions[i].effects:
-            al.addIE((al.actions[-1], al.actions[i]))
+def mutexIE(al, eDict, negate):
+    effects = list(eDict)
+    eLen = len(effects)
+    for i in range(eLen):
+        for j in range(i+1, eLen):
+            if negate[effects[i]] == effects[j]:
+                for a1 in eDict[effects[i]]:
+                    for a2 in eDict[effects[j]]:
+                        al.addIE(a1, a2)
 
 
-def mutexI(al):
+def mutexIHelper(a1, a2, al, negate):
+    for e in a1.effects:
+        for p in a2.preconditions:
+            if negate[e] == p:
+                al.addI(a1, a2)
+                return
+
+
+def mutexI(al, negate):
     aLen = len(al.actions)
     for i in range(aLen):
         a1 = al.actions[i]
         for j in range(aLen):
             if i != j:
                 a2 = al.actions[j]
-                for e in a1.effects:
-                    for p in a2.preconditions:
-                        if negate[e] == p:
-                            al.addI((a1, a2))
-                        # if areNegated(e, p):
-                        #     al.addI((a1, a2))
+                mutexIHelper(a1, a2, al, negate)
+
+
+def mutexCNHelper(a1, a2, al, pl):
+    for p1 in a1.preconditions:
+        for p2 in a2.preconditions:
+            if pl.areMutex(p1, p2):
+                al.addCN(a1, a2)
+                return
 
 
 def mutexCN(al):
@@ -145,24 +168,17 @@ def mutexCN(al):
         a1 = al.actions[i]
         for j in range(i+1, aLen):
             a2 = al.actions[j]
-
-            for p1 in a1.preconditions:
-                for p2 in a2.preconditions:
-                    if (((p1, p2) in pl.negatedLiterals) |
-                            ((p2, p1) in pl.negatedLiterals) |
-                            ((p1, p2) in pl.inconsistentSupport) |
-                            ((p2, p1) in pl.inconsistentSupport)):
-                        al.addCN((a1, a2))
+            mutexCNHelper(a1, a2, al, pl)
 
 
-def initializePlan():
+def initializePlan(iStates):
     initStateLayer = StateLayer()
     for s in iStates:
         initStateLayer.addLiteral(s)
     return Graph(initStateLayer)
 
 
-def applyActions(gp):
+def applyActions(gp, actions, negate):
     eDict = dict()
 
     actionLayer = ActionLayer()
@@ -188,25 +204,24 @@ def applyActions(gp):
                 if (e not in stateLayer.literals):
                     stateLayer.addLiteral(e)
 
-                # Inconsistent Effect mutexes
-                for l in stateLayer.literals:
-                    if negate[e] == l:
-                        mutexIE(actionLayer, l)
-                    # if areNegated(e, l):
-                    #     mutexIE(actionLayer, l)
-
                 # make a mapping for effect to what action caused it
                 if e in eDict:
                     eDict[e].append(a)
                 else:
                     eDict[e] = [a]
 
+    # add the action and the preceding state layer to the graph
     gp.addLayer(actionLayer)
-
     gp.addLayer(stateLayer)
 
+    # compute the negated literal mutexes
+    mutexNL(stateLayer, negate)
+
+    # compute the inconsistent effects mutexes
+    mutexIE(actionLayer, eDict, negate)
+
     # interference mutexes
-    mutexI(actionLayer)
+    mutexI(actionLayer, negate)
 
     # Competing Needs mutexes
     mutexCN(actionLayer)
@@ -215,17 +230,33 @@ def applyActions(gp):
     mutexIS(stateLayer, eDict)
 
 
-def plan():
-    gp = initializePlan()
+def checkCompletion(gp):
+    currStateLayer = gp.current
+    lastStateLayer = currStateLayer.prev.prev
+    return (currStateLayer == lastStateLayer)
 
-    # apply action and produce the next state layer
-    applyActions(gp)
-    applyActions(gp)
 
-    print(gp)
+def writeOutGP(gp, outFile):
+    gp.writeOut(outFile)
+
+
+def plan(gp, actions, negate):
+    complete = False
+    while(not complete):
+        # apply action and produce the next state layer
+        applyActions(gp, actions, negate)
+        complete = checkCompletion(gp)
 
 
 def graphPlanGenerate():
+    # expected number of arguments
+    nArgExpected = 2 + 1  # +1 is for the filename itself
+    iStates = []
+    gStates = []
+    actions = []
+    sDict = dict()
+    negate = dict()
+
     # number of arguments
     nArgActual = len(argv)
 
@@ -239,18 +270,13 @@ def graphPlanGenerate():
     inFile = argv[1]
     outFile = argv[2]
 
-    loadFile(inFile)
+    # display the file to the user
+    displayFile(inFile)
 
-    plan()
-
-    # for i in iStates:
-    #     print(i)
-    # for g in gStates:
-    #     print(g)
-    # for a in actions:
-    #     print((a.act))
-    #     print(a.preconditions)
-    #     print(a.effects)
+    loadFile(inFile, iStates, gStates, actions, sDict, negate)
+    gp = initializePlan(iStates)
+    plan(gp, actions, negate)
+    gp.writeOut(outFile)
 
     return 0
 
