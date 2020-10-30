@@ -27,7 +27,7 @@ please consult the README.md file.
 """
 
 
-def loadFile(inFile, iStates, gStates, actions, negate):
+def loadFile(inFile, iStates, gStates, allActions, negate):
     """
         This function is responsible for reading the input file
         and lodaing the appropriate literals and actions into the
@@ -39,7 +39,7 @@ def loadFile(inFile, iStates, gStates, actions, negate):
         inFile (string): Input file path
         iStates (list): Enpty list which will be populated with the initial states
         gStates (list): Empty list whcih will be populated with the goal states
-        actions (list): Empty list which will be populated with the actions
+        allActions (list): Empty list which will be populated with the actions
         negate (dictionary): Populated with literal and negated literal key value pairs
     """
     # used to keep track of which states have been already been read in
@@ -87,7 +87,7 @@ def loadFile(inFile, iStates, gStates, actions, negate):
                     sDict[ef] = State(ef)
                 a.addEffect(sDict[ef])
 
-            actions.append(a)
+            allActions.append(a)
 
         line = f.readline()
 
@@ -138,22 +138,23 @@ def mutexNL(sl, negate):
         sl (StateLayer): State layer object
         negate (dicionary): Dictionary used to lookup negated literals
     """
-    sLen = len(sl.literals)
+    literals = sl.literals
+    sLen = len(literals)
     for i in range(sLen):
-        l1 = sl.literals[i]
+        l1 = literals[i]
         for j in range(i+1, sLen):
-            l2 = sl.literals[j]
+            l2 = literals[j]
             # if the negated literal has a negated literal in the state then
             # add the pair to the list of negated literals of the layer
             if negate[l1] == l2:
-                sl.addNL(l1, l2)
+                sl.addMutex(l1, l2, mNL)
 
 
 def mutexISHelper(l1, l2, al, eDict):
     """
-    This function is a helper function to the mutexIS function, it
-    checks if all the pairs of actions which prodice the literals are
-    mutex.
+        This function is a helper function to the mutexIS function, it
+        checks if all the pairs of actions which prodice the literals are
+        mutex.
 
     Args:
         l1 (State): The first literal
@@ -188,22 +189,24 @@ def mutexIS(sl, eDict):
                             which produce the effect as the value
 
     """
-    sLen = len(sl.literals)
+    literals = sl.literals
+    sLen = len(literals)
     for i in range(sLen):
-        l1 = sl.literals[i]
+        l1 = literals[i]
         for j in range(i+1, sLen):
-            l2 = sl.literals[j]
+            l2 = literals[j]
             if mutexISHelper(l1, l2, sl.prev, eDict):
                 # if all action that cause l1 are mutex with all
                 # the action that cause l2 are mutex then l1 and l2 are mutex
-                sl.addIS(l1, l2)
+                sl.addMutex(l1, l2, mIS)
 
 
 def mutexIE(al, eDict, negate):
-    """This function computes all the inconsistent effect mutexes for the
-    action layer. An inconsistent effect is one where an effect of one
-    action is the negation of the effect of another action. This function
-    used the negate dictionary to check negated effects.
+    """
+        This function computes all the inconsistent effect mutexes for the
+        action layer. An inconsistent effect is one where an effect of one
+        action is the negation of the effect of another action. This function
+        used the negate dictionary to check negated effects.
 
     Args:
         al (ActionLayer): Action layer object
@@ -220,7 +223,7 @@ def mutexIE(al, eDict, negate):
             if negate[effects[i]] == effects[j]:
                 for a1 in eDict[effects[i]]:
                     for a2 in eDict[effects[j]]:
-                        al.addIE(a1, a2)
+                        al.addMutex(a1, a2, mIE)
 
 
 def mutexIHelper(a1, a2, al, negate):
@@ -238,7 +241,7 @@ def mutexIHelper(a1, a2, al, negate):
     for e in a1.effects:
         for p in a2.preconditions:
             if negate[e] == p:
-                al.addI(a1, a2)
+                al.addMutex(a1, a2, mI)
                 # if any pair of effect and action are negations of each other
                 # return after addion to the mutex list
                 return
@@ -277,7 +280,7 @@ def mutexCNHelper(a1, a2, al, pl):
     for p1 in a1.preconditions:
         for p2 in a2.preconditions:
             if pl.areMutex(p1, p2):
-                al.addCN(a1, a2)
+                al.addMutex(a1, a2, mCN)
                 return
 
 
@@ -294,11 +297,12 @@ def mutexCN(al):
                             needs mutexes.
     """
     pl = al.prev
-    aLen = len(al.actions)
+    actions = al.actions
+    aLen = len(actions)
     for i in range(aLen):
-        a1 = al.actions[i]
+        a1 = actions[i]
         for j in range(i+1, aLen):
-            a2 = al.actions[j]
+            a2 = actions[j]
             mutexCNHelper(a1, a2, al, pl)
 
 
@@ -341,7 +345,7 @@ def initializePlan(iStates):
     return Graph(initStateLayer)
 
 
-def applyActions(gp, actions, negate):
+def applyActions(gp, allActions, negate):
     """
         This function is responsible for computing the the next step in
         the graph planning, each time this function called it generates the
@@ -350,7 +354,7 @@ def applyActions(gp, actions, negate):
 
     Args:
         gp (Graph): The graph obejct representing the graph plan
-        actions (list): The list of actions which can be performed
+        allActions (list): The list of actions which can be performed
         negate (dictionary): A dictionary with negate literals as key value pairs
     """
     eDict = dict()
@@ -370,7 +374,7 @@ def applyActions(gp, actions, negate):
         # make a mapping for effect to what action caused it
         eDict[s] = [s]
 
-    for a in actions:
+    for a in allActions:
         if canPerformAction(gp, a):
             actionLayer.addAction(a)
             for e in a.effects:
@@ -431,21 +435,21 @@ def writeOutGP(gp, outFile):
     gp.writeOut(outFile)
 
 
-def plan(gp, actions, negate):
+def plan(gp, allActions, negate):
     """
         This function is responsible for performing the graph plan
-        while repeatedly calling the applyActions function which progesses
+        while repeatedly calling the apply Actions function which progesses
         the graph plan along two steps.
 
     Args:
         gp (Graph): The graph plan object
-        actions (list): The list of action whcih can be performed
+        allActions (list): The list of action whcih can be performed
         negate (dictionary): A dictionary with negate literals as key value pairs
     """
     complete = False
     while(not complete):
         # apply action and produce the next state layer
-        applyActions(gp, actions, negate)
+        applyActions(gp, allActions, negate)
         complete = checkCompletion(gp)
 
 
@@ -465,7 +469,7 @@ def graphPlanGenerate():
     nArgExpected = 2 + 1  # +1 is for the filename itself
     iStates = []
     gStates = []
-    actions = []
+    allActions = []
     negate = dict()
 
     # number of arguments
@@ -484,9 +488,9 @@ def graphPlanGenerate():
     # display the file to the user
     displayFile(inFile)
 
-    loadFile(inFile, iStates, gStates, actions, negate)
+    loadFile(inFile, iStates, gStates, allActions, negate)
     gp = initializePlan(iStates)
-    plan(gp, actions, negate)
+    plan(gp, allActions, negate)
     gp.writeOut(outFile)
 
 

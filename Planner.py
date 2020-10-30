@@ -1,3 +1,9 @@
+mNL = 1
+mIE = 2
+mI = 3
+mCN = 4
+mIS = 5
+
 
 class State:
     def __init__(self, name):
@@ -65,10 +71,8 @@ class ActionLayer:
     def __init__(self):
         self.__prev = None
         self.__next = None
-        self.__actions = []
-        self.__inconsistentEffects = []
-        self.__interference = []
-        self.__competingNeeds = []
+        self.__actions = dict()
+        self.__mutexes = dict()
         self.__depth = None
 
     @property
@@ -81,23 +85,15 @@ class ActionLayer:
 
     @property
     def actions(self):
-        return self.__actions
+        return list(self.__actions)
 
     @property
     def depth(self):
         return self.__depth
 
     @property
-    def inconsistentEffects(self):
-        return self.__inconsistentEffects
-
-    @property
-    def interference(self):
-        return self.__interference
-
-    @property
-    def competingNeeds(self):
-        return self.__competingNeeds
+    def mutexes(self):
+        return self.__mutexes
 
     @prev.setter
     def prev(self, value):
@@ -112,44 +108,39 @@ class ActionLayer:
         self.__depth = value
 
     def addAction(self, action):
-        self.__actions.append(action)
+        if action not in self.__actions:
+            self.__actions[action] = action
 
-    def addIE(self, a1, a2):
-        if a1 != a2:
-            if a1 <= a2:
-                self.__inconsistentEffects.append((a1, a2))
-            else:
-                self.__inconsistentEffects.append((a2, a1))
+    def addMutex(self, a1, a2, mType):
+        if not self.__validMutex:
+            return False
 
-    def addI(self, a1, a2):
         if a1 != a2:
-            if a1 <= a2:
-                self.__interference.append((a1, a2))
-            else:
-                self.__interference.append((a2, a1))
+            if a2 <= a1:
+                a1, a2 = a2, a1
 
-    def addCN(self, a1, a2):
-        if a1 != a2:
-            if a1 <= a2:
-                self.__competingNeeds.append((a1, a2))
+            if (a1, a2) not in self.__mutexes:
+                self.__mutexes[(a1, a2)] = [mType]
             else:
-                self.__competingNeeds.append((a2, a1))
+                if mType not in self.__mutexes[(a1, a2)]:
+                    self.__mutexes[(a1, a2)].append(mType)
 
     def areMutex(self, a1, a2):
         if a2 <= a1:
             a1, a2 = a2, a1
 
-        if (((a1, a2) in self.__inconsistentEffects)
-                | ((a1, a2) in self.__interference)
-                | ((a1, a2) in self.__competingNeeds)):
+        if (a1, a2) in self.__mutexes:
+            return True
+
+        return False
+
+    def __validMutex(self, mType):
+        if mType == mIE | mType == mI | mType == mCN:
             return True
         return False
 
     def __eq__(self, other):
-        if ((self.__actions == other.actions)
-                and (self.__inconsistentEffects == other.__inconsistentEffects)
-                and (self.__interference == other.__interference)
-                and (self.__competingNeeds == other.__competingNeeds)):
+        if (self.actions == other.actions) and (self.__mutexes == other.mutexes):
             return True
         return False
 
@@ -157,31 +148,36 @@ class ActionLayer:
         rtnStr = "ActLayer: <" + str(self.__depth) + ">"
 
         rtnStr += "\n\tActions: "
-        for i in range(len(self.__actions)):
-            if isinstance(self.__actions[i], Action):
-                rtnStr += str(self.__actions[i])
-                if i < len(self.__actions)-1:
-                    rtnStr += ', '
+        for a in self.__actions:
+            if isinstance(a, Action):
+                rtnStr += str(a) + ", "
 
-        rtnStr += "\n\tInconsistent Effects: "
-        for i in range(len(self.__inconsistentEffects)):
-            rtnStr += str(self.__inconsistentEffects[i])
-            if i < len(self.__inconsistentEffects)-1:
-                rtnStr += ', '
+        if rtnStr[-2] == ',':
+            rtnStr = rtnStr[:-2]
 
-        rtnStr += "\n\tinterference: "
-        for i in range(len(self.__interference)):
-            rtnStr += str(self.__interference[i])
-            if i < len(self.__interference)-1:
-                rtnStr += ', '
+        ieString = "\n\tInconsistent Effects: "
+        iString = "\n\tinterference: "
+        cnString = "\n\tCompeting Needs: "
 
-        rtnStr += "\n\tCompeting Needs: "
-        for i in range(len(self.__competingNeeds)):
-            rtnStr += str(self.__competingNeeds[i])
-            if i < len(self.__competingNeeds)-1:
-                rtnStr += ', '
+        for m in self.__mutexes:
+            val = self.__mutexes[m]
+            for mType in val:
+                if mType == mIE:
+                    ieString += str(m) + ", "
+                elif mType == mI:
+                    iString += str(m) + ", "
+                elif mType == mCN:
+                    cnString += str(m) + ", "
 
-        rtnStr += "\n"
+        # remove last comma
+        if ieString[-2] == ',':
+            ieString = ieString[:-2]
+        if iString[-2] == ',':
+            iString = iString[:-2]
+        if cnString[-2] == ',':
+            cnString = cnString[:-2]
+
+        rtnStr += ieString + iString + cnString + "\n"
         return rtnStr
 
 
@@ -189,9 +185,8 @@ class StateLayer:
     def __init__(self):
         self.__prev = None
         self.__next = None
-        self.__literals = []
-        self.__negatedLiterals = []
-        self.__inconsistentSupport = []
+        self.__literals = dict()
+        self.__mutexes = dict()
         self.__depth = None
 
     @ property
@@ -204,19 +199,15 @@ class StateLayer:
 
     @ property
     def literals(self):
-        return self.__literals
+        return list(self.__literals)
 
     @ property
     def depth(self):
         return self.__depth
 
-    @ property
-    def negatedLiterals(self):
-        return self.__negatedLiterals
-
-    @ property
-    def inconsistentSupport(self):
-        return self.__inconsistentSupport
+    @property
+    def mutexes(self):
+        return self.__mutexes
 
     @ prev.setter
     def prev(self, value):
@@ -231,35 +222,37 @@ class StateLayer:
         self.__depth = value
 
     def addLiteral(self, literal):
-        self.__literals.append(literal)
+        if literal not in self.__literals:
+            self.__literals[literal] = literal
 
-    def addNL(self, l1, l2):
-        if l1 != l2:
-            if l1 <= l2:
-                self.__negatedLiterals.append((l1, l2))
-            else:
-                self.__negatedLiterals.append((l2, l1))
+    def addMutex(self, l1, l2, mType):
+        if not self.__validMutex:
+            return False
 
-    def addIS(self, l1, l2):
         if l1 != l2:
-            if l1 <= l2:
-                self.__inconsistentSupport.append((l1, l2))
+            if l2 <= l1:
+                l1, l2 = l2, l1
+
+            if (l1, l2) not in self.__mutexes:
+                self.__mutexes[(l1, l2)] = [mType]
             else:
-                self.__inconsistentSupport.append((l2, l1))
+                self.__mutexes[(l1, l2)].append(mType)
 
     def areMutex(self, l1, l2):
         if l2 <= l1:
             l1, l2 = l2, l1
 
-        if (((l1, l2) in self.__negatedLiterals)
-                | ((l1, l2) in self.__inconsistentSupport)):
+        if (l1, l2) in self.__mutexes:
+            return True
+        return False
+
+    def __validMutex(self, mType):
+        if mType == mNL | mType == mIS:
             return True
         return False
 
     def __eq__(self, other):
-        if ((self.__literals == other.literals)
-                and (self.__negatedLiterals == other.negatedLiterals)
-                and (self.__inconsistentSupport == other.__inconsistentSupport)):
+        if ((self.literals == other.literals) and (self.__mutexes == other.mutexes)):
             return True
         return False
 
@@ -267,24 +260,30 @@ class StateLayer:
         rtnStr = "StateLayer: <" + str(self.__depth) + ">"
 
         rtnStr += "\n\tLiterals: "
-        for i in range(len(self.__literals)):
-            rtnStr += str(self.__literals[i])
-            if i < len(self.__literals)-1:
-                rtnStr += ', '
+        for l in self.__literals:
+            rtnStr += str(l) + ", "
 
-        rtnStr += "\n\tNegated Literals: "
-        for i in range(len(self.__negatedLiterals)):
-            rtnStr += str(self.__negatedLiterals[i])
-            if i < len(self.__negatedLiterals)-1:
-                rtnStr += ', '
+        if rtnStr[-2] == ',':
+            rtnStr = rtnStr[:-2]
 
-        rtnStr += "\n\tInconsistent Support: "
-        for i in range(len(self.__inconsistentSupport)):
-            rtnStr += str(self.__inconsistentSupport[i])
-            if i < len(self.__inconsistentSupport)-1:
-                rtnStr += ', '
+        nlString = "\n\tNegated Literals: "
+        isString = "\n\tInconsistent Support: "
 
-        rtnStr += "\n"
+        for m in self.__mutexes:
+            val = self.__mutexes[m]
+            for mType in val:
+                if mType == mNL:
+                    nlString += str(m) + ", "
+                elif mType == mIS:
+                    isString += str(m) + ", "
+
+        # remove last comma
+        if nlString[-2] == ',':
+            nlString = nlString[:-2]
+        if isString[-2] == ',':
+            isString = isString[:-2]
+
+        rtnStr += nlString + isString + "\n"
         return rtnStr
 
 
