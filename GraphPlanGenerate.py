@@ -302,6 +302,28 @@ def mutexCN(al):
             mutexCNHelper(a1, a2, al, pl)
 
 
+def canPerformAction(gp, a):
+    """
+    This function is responsible for checking if the action can be
+    performed by checking that all the pecondition for this action
+    exist in the previous state layer and none of them are mutex in the
+    previos state layer.
+
+    Args:
+        gp (Graph): The Graph object containing all the action and state layers
+        a (Action): The action being checked to see if it can be performed
+
+    Returns:
+        boolean: True if the action can be performed, False otherwise
+    """
+    for p1 in a.preconditions:
+        for p2 in a.preconditions:
+            if (p1 != p2) and (gp.current.areMutex(p1, p2)):
+                return False
+
+    return all(s in gp.current.literals for s in a.preconditions)
+
+
 def initializePlan(iStates):
     """
         This function is responsible for initializing the graph plan object
@@ -349,7 +371,7 @@ def applyActions(gp, actions, negate):
         eDict[s] = [s]
 
     for a in actions:
-        if all(s in gp.current.literals for s in a.preconditions):
+        if canPerformAction(gp, a):
             actionLayer.addAction(a)
             for e in a.effects:
                 # adds new literal and takes care of 'Negated Literals mutexes'
