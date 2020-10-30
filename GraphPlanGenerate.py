@@ -4,6 +4,7 @@ from Planner import *
 import os
 import re
 from sys import argv
+import itertools
 
 __author__ = 'Nachiket Patel'
 __email__ = 'nnpatel5@ncsu.edu'
@@ -413,6 +414,74 @@ def checkCompletion(gp):
     return (currStateLayer == lastStateLayer)
 
 
+"""
+BROKEN
+"""
+
+
+def recExtractSolHelper(c, currState):
+    cLen = len(c)
+    for i in range(cLen):
+        for j in range(i+1, cLen):
+            if currState.areMutex(c[i], c[j]):
+                return False
+    return True
+
+
+def recExtractSol(currState, gStates, solution, iStates):
+    # look all the actions which cause the literals to appera in the
+    # current stat layer
+    if currState.depth == 0:
+        if all(s in iStates for s in gStates):
+            return True
+        else:
+            return False
+
+    if len(gStates) == 0:
+        return False
+
+    x = []
+    for g in gStates:
+        temp = currState.causes(g)
+        if temp not in x:
+            x.append(temp)
+
+    if None in x:
+        return False
+
+    for c in itertools.product(*x):
+        # if a combination of actions have no mutex then
+        if recExtractSolHelper(c, currState.prev.prev):
+            igStates = []
+            for a in c:
+                for p in a.preconditions:
+                    if p not in igStates:
+                        igStates.append(p)
+
+            if recExtractSol(currState.prev.prev, igStates, solution, iStates):
+                act = []
+                for a in c:
+                    if isinstance(a, Action):
+                        act.append(a)
+                solution.append(act)
+                return True
+
+
+def extractSolution(gp, gStates, iStates):
+    solution = []
+    currState = gp.current
+    if not all(g in currState.literals for g in gStates):
+        return solution
+
+    recExtractSol(currState, gStates, solution, iStates)
+    return solution
+
+
+"""
+BROKEN
+"""
+
+
 def writeOutGP(gp, outFile):
     """
         Writes the graph plan out to the output file provided.
@@ -424,7 +493,11 @@ def writeOutGP(gp, outFile):
     gp.writeOut(outFile)
 
 
-def plan(gp, allActions, negate):
+def confirmSolution(iStates, solution, gStates):
+    return
+
+
+def plan(gp, allActions, gStates, iStates, negate):
     """
         This function is responsible for performing the graph plan
         while repeatedly calling the apply Actions function which progesses
@@ -439,6 +512,7 @@ def plan(gp, allActions, negate):
     while(not complete):
         # apply action and produce the next state layer
         applyActions(gp, allActions, negate)
+        solution = extractSolution(gp, gStates, iStates)
         complete = checkCompletion(gp)
 
 
@@ -479,7 +553,7 @@ def graphPlanGenerate():
 
     loadFile(inFile, iStates, gStates, allActions, negate)
     gp = initializePlan(iStates)
-    plan(gp, allActions, negate)
+    plan(gp, allActions, gStates, iStates, negate)
     gp.writeOut(outFile)
 
 
