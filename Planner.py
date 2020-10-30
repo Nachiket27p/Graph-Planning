@@ -221,9 +221,17 @@ class StateLayer:
     def depth(self, value):
         self.__depth = value
 
-    def addLiteral(self, literal):
+    def causes(self, l1):
+        if l1 in self.__literals:
+            return self.__literals[l1]
+        else:
+            return None
+
+    def addLiteral(self, literal, cause):
         if literal not in self.__literals:
-            self.__literals[literal] = literal
+            self.__literals[literal] = [cause]
+        elif cause not in self.__literals[literal]:
+            self.__literals[literal].append(cause)
 
     def addMutex(self, l1, l2, mType):
         if not self.__validMutex:

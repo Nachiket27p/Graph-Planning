@@ -119,25 +119,26 @@ def displayFile(inFile):
           " will be solved with graph planning:\n")
     f = open(inFile, 'r')
 
-    print("################################################################################")
+    print("--------------------------------------------------------------------------------")
     print("\t\t\t\t" + inFile)
-    print("################################################################################")
+    print("--------------------------------------------------------------------------------")
 
     print(f.read())
 
     f.close()
 
 
-def mutexNL(sl, negate):
+def mutexNL(gp, negate):
     """
         This function is responsible for computing the negated literas in
         the state layer. It uses the negate dictionary to lookup the negation
         of the literals in the state layer to determine if they are mutex.
 
     Args:
-        sl (StateLayer): State layer object
+        gp (StateLayer): The Graph object representing the graph plan
         negate (dicionary): Dictionary used to lookup negated literals
     """
+    sl = gp.current
     literals = sl.literals
     sLen = len(literals)
     for i in range(sLen):
@@ -150,7 +151,7 @@ def mutexNL(sl, negate):
                 sl.addMutex(l1, l2, mNL)
 
 
-def mutexISHelper(l1, l2, al, eDict):
+def mutexISHelper(l1, l2, al, sl):
     """
         This function is a helper function to the mutexIS function, it
         checks if all the pairs of actions which prodice the literals are
@@ -160,15 +161,14 @@ def mutexISHelper(l1, l2, al, eDict):
         l1 (State): The first literal
         l2 (State): The second literal
         al (ActionLayer): The previous action layer
-        eDict (dictionary): A dictionary with effects as keys and list of actions
-                            which produce the effect as the value
+        sl (StateLayer): State layer object
 
     Returns:
         boolean: True if all pairs of actions which procide the literals
                     are mutexes, else False
     """
-    for a1 in eDict[l1]:
-        for a2 in eDict[l2]:
+    for a1 in sl.causes(l1):
+        for a2 in sl.causes(l2):
             # if any one of pairs are no mutex than l1 and l2
             # cannot be mutexes so return
             if not al.areMutex(a1, a2):
@@ -176,7 +176,7 @@ def mutexISHelper(l1, l2, al, eDict):
     return True
 
 
-def mutexIS(sl, eDict):
+def mutexIS(gp):
     """
         This function is responsible for computing all the inconsistent
         support mutexes in the state layer. An inconsistent support is one
@@ -184,24 +184,23 @@ def mutexIS(sl, eDict):
         are mutex in the previous layer.
 
     Args:
-        sl (StateLayer): State layer object
-        eDict (dictionary): A dictionary with effects as keys and list of actions
-                            which produce the effect as the value
+        gp (StateLayer): The Graph object representing the graph plan
 
     """
+    sl = gp.current
     literals = sl.literals
     sLen = len(literals)
     for i in range(sLen):
         l1 = literals[i]
         for j in range(i+1, sLen):
             l2 = literals[j]
-            if mutexISHelper(l1, l2, sl.prev, eDict):
+            if mutexISHelper(l1, l2, sl.prev, sl):
                 # if all action that cause l1 are mutex with all
                 # the action that cause l2 are mutex then l1 and l2 are mutex
                 sl.addMutex(l1, l2, mIS)
 
 
-def mutexIE(al, eDict, negate):
+def mutexIE(gp, negate):
     """
         This function computes all the inconsistent effect mutexes for the
         action layer. An inconsistent effect is one where an effect of one
@@ -209,20 +208,20 @@ def mutexIE(al, eDict, negate):
         used the negate dictionary to check negated effects.
 
     Args:
-        al (ActionLayer): Action layer object
-        eDict (dictionary): A dictionary with effects as keys and list of actions
-                            which produce the effect as the value
+        gp (StateLayer): The Graph object representing the graph plan
         negate (dictionary): A dictionary containing pairs of negated literals
     """
-    effects = list(eDict)
+    sl = gp.current
+    al = sl.prev
+    effects = sl.literals
     eLen = len(effects)
     for i in range(eLen):
         for j in range(i+1, eLen):
             # check if two effects are negated then find for all
             # actions which produce the effect are negated
             if negate[effects[i]] == effects[j]:
-                for a1 in eDict[effects[i]]:
-                    for a2 in eDict[effects[j]]:
+                for a1 in sl.causes(effects[i]):
+                    for a2 in sl.causes(effects[j]):
                         al.addMutex(a1, a2, mIE)
 
 
@@ -247,16 +246,17 @@ def mutexIHelper(a1, a2, al, negate):
                 return
 
 
-def mutexI(al, negate):
+def mutexI(gp, negate):
     """
         This function is responsible for computing all the Interference mutexes
         in the action layer. An interference is when two actions have a precondition
         which are negated. It uses the negete dictionary to look up negated preconditions.
 
     Args:
-        al (ActionLayer): The action layer for whcih to compute the interference mutexes
+        gp (StateLayer): The Graph object representing the graph plan
         negate (dictionary): A dictionary with negate literals as key value pairs
     """
+    al = gp.current.prev
     aLen = len(al.actions)
     for i in range(aLen):
         a1 = al.actions[i]
@@ -284,7 +284,7 @@ def mutexCNHelper(a1, a2, al, pl):
                 return
 
 
-def mutexCN(al):
+def mutexCN(gp):
     """
         This function is responsible for computing all the competing needs
         mutexes in the action layer provided in the parameter. A competing needs
@@ -296,14 +296,14 @@ def mutexCN(al):
         al (ActionLayer): The action layer in which to compute the competing
                             needs mutexes.
     """
-    pl = al.prev
+    al = gp.current.prev
     actions = al.actions
     aLen = len(actions)
     for i in range(aLen):
         a1 = actions[i]
         for j in range(i+1, aLen):
             a2 = actions[j]
-            mutexCNHelper(a1, a2, al, pl)
+            mutexCNHelper(a1, a2, al, al.prev)
 
 
 def canPerformAction(gp, a):
@@ -341,7 +341,7 @@ def initializePlan(iStates):
     """
     initStateLayer = StateLayer()
     for s in iStates:
-        initStateLayer.addLiteral(s)
+        initStateLayer.addLiteral(s, s)
     return Graph(initStateLayer)
 
 
@@ -357,8 +357,6 @@ def applyActions(gp, allActions, negate):
         allActions (list): The list of actions which can be performed
         negate (dictionary): A dictionary with negate literals as key value pairs
     """
-    eDict = dict()
-
     actionLayer = ActionLayer()
 
     # add all the persistant literals from the previous layer
@@ -370,42 +368,33 @@ def applyActions(gp, allActions, negate):
     # all the literal carry over into the next state layer
     # also takes care of 'Negated Literals mutexes'
     for s in gp.current.literals:
-        stateLayer.addLiteral(s)
-        # make a mapping for effect to what action caused it
-        eDict[s] = [s]
+        stateLayer.addLiteral(s, s)
 
     for a in allActions:
         if canPerformAction(gp, a):
             actionLayer.addAction(a)
             for e in a.effects:
                 # adds new literal and takes care of 'Negated Literals mutexes'
-                if (e not in stateLayer.literals):
-                    stateLayer.addLiteral(e)
-
-                # make a mapping for effect to what action caused it
-                if e in eDict:
-                    eDict[e].append(a)
-                else:
-                    eDict[e] = [a]
+                stateLayer.addLiteral(e, a)
 
     # add the action and the preceding state layer to the graph
     gp.addLayer(actionLayer)
     gp.addLayer(stateLayer)
 
     # compute the negated literal mutexes
-    mutexNL(stateLayer, negate)
+    mutexNL(gp, negate)
 
     # compute the inconsistent effects mutexes
-    mutexIE(actionLayer, eDict, negate)
+    mutexIE(gp, negate)
 
     # interference mutexes
-    mutexI(actionLayer, negate)
+    mutexI(gp, negate)
 
     # Competing Needs mutexes
-    mutexCN(actionLayer)
+    mutexCN(gp)
 
     # Inconsistent Support mutexes
-    mutexIS(stateLayer, eDict)
+    mutexIS(gp)
 
 
 def checkCompletion(gp):
