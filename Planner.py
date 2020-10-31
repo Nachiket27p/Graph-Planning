@@ -300,6 +300,7 @@ class Graph:
         self.__root = rootLayer
         self.__current = rootLayer
         self.__currentDepth = 0
+        self.__solution = "No Plan"
         rootLayer.depth = 0
 
     @ property
@@ -307,8 +308,16 @@ class Graph:
         return self.__root
 
     @ property
+    def solution(self):
+        return self.__solution
+
+    @ property
     def current(self):
         return self.__current
+
+    @solution.setter
+    def solution(self, value):
+        self.__solution = value
 
     def addLayer(self, layer):
         self.__currentDepth += 1
@@ -319,6 +328,14 @@ class Graph:
 
     def writeOut(self, outFile):
         of = open(outFile, "w")
+        of.write(str(self))
+        of.close()
+
+    def writeOutSol(self, outFile):
+        of = open(outFile, "w")
+        sol = "Solution: " + str(self.__solution)
+        sol += "\n--------------------------------------------------------------------------------\n"
+        of.write(sol)
         of.write(str(self))
         of.close()
 
