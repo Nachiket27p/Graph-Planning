@@ -103,8 +103,8 @@ and **Q2_problem2.txt**.
 * How to use? There are two ways to run the program both are listed below, the second one requires
     a linux terminal to execute.
 
-        ~$ python3 GraphPlanGenerate.py <Infile> <GraphFile>
-        ~$ ./GraphPlanGenerate.py <Infile> <GraphFile>
+        ~$ python3 GraphPlanExtract.py <Infile> <GraphFile>
+        ~$ ./GraphPlanExtract.py <Infile> <GraphFile>
 
 * Example execution with the file **Q2_problem1.txt** and the terminal output is shown below.
 
