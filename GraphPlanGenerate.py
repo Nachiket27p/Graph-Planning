@@ -480,14 +480,6 @@ def graphPlanGenerate():
     plan(gp, allActions, negate)
     gp.writeOut(outFile)
 
-    print("\n")
-    curr = gp.root
-    while(curr):
-        print(curr.depth)
-        for m in curr._mutexes:
-            print((m, curr._mutexes[m]))
-        curr = curr.next
-
 
 if __name__ == "__main__":
     graphPlanGenerate()

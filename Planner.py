@@ -662,10 +662,12 @@ class Graph:
             outFile (String): File path of output file.
         """
         of = open(outFile, "w")
-        sol = "Solution: " + str(self.__solution)
-        sol += "\n--------------------------------------------------------------------------------\n"
-        of.write(sol)
         of.write(str(self))
+
+        sol = "\n--------------------------------------------------------------------------------\n"
+        sol += "Solution: " + str(self.__solution)
+        of.write(sol)
+
         of.close()
 
     def __str__(self):
