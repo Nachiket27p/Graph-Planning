@@ -1,0 +1,32 @@
+InitialState [-0,-1,-2,+4,+5,-6,-7,-8]
+
+GoalState [-4,-5]
+
+Act [Move(4-->3)]
+Preconditions [-3]
+Effects [+3,-4]
+
+Act [Move(4-->5)]
+Preconditions [-5]
+Effects [+5,-4]
+
+Act [Move(4-->1)]
+Preconditions [-1]
+Effects [+1,-4]
+
+Act [Move(4-->7)]
+Preconditions [-7]
+Effects [+7,-4]
+
+Act [Move(5-->4)]
+Preconditions [-4]
+Effects [+4,-5]
+
+Act [Move(5-->2)]
+Preconditions [-2]
+Effects [+2,-5]
+
+Act [Move(5-->8)]
+Preconditions [-8]
+Effects [+8,-5]
+

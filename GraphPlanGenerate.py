@@ -50,45 +50,64 @@ def loadFile(inFile, iStates, gStates, allActions, negate):
     while line:
         # split the line using square braces ('[', ']', ',')
         # to extract all the literals
-        split = re.split('\[|,|]', line)
+        split = [item.strip() for item in re.split('\[|,|]', line)]
         # if the line starts with "InitialState" then place the literals into
         # initial list iStates
-        if split[0] == 'InitialState ':
-            for i in range(1, len(split)-1):
-                s = State(split[i])
-                iStates.append(s)
-                sDict[split[i]] = s
+        if split[0] == 'InitialState':
+            for i in range(1, len(split)):
+                literal = split[i]
+                if literal != '':
+                    s = State(literal)
+                    iStates.append(s)
+                    sDict[literal] = s
+            line = f.readline()
         # if the line starts with 'GoalState ' then place the literals into
         # the list gStates
-        elif split[0] == 'GoalState ':
-            for i in range(1, len(split)-1):
-                if not(split[i] in sDict):
-                    sDict[split[i]] = State(split[i])
-                gStates.append(sDict[split[i]])
+        elif split[0] == 'GoalState':
+            for i in range(1, len(split)):
+                goal = split[i]
+                if goal != '':
+                    if not(goal in sDict):
+                        sDict[goal] = State(goal)
+                    gStates.append(sDict[goal])
+            line = f.readline()
         # if the line starts with 'Act ' then read the next line to
         # get the preconditions and then read the line after that
         # to get the effects of the action.
-        elif split[0] == 'Act ':
+        elif split[0] == 'Act':
             a = Action(split[1])
-            preconds = f.readline()
-            psplit = re.split('\[|,|]', preconds)
-            for i in range(1, len(psplit)-1):
-                pc = psplit[i]
-                if not(pc in sDict):
-                    sDict[pc] = State(pc)
-                a.addPrecondition(sDict[pc])
+            line = f.readline()
+            # if for some reason there are no preconditions or effects
+            # must be end of file break out of loop
+            if not line:
+                break
 
-            effects = f.readline()
-            esplit = re.split('\[|,|]', effects)
-            for i in range(1, len(esplit)-1):
-                ef = esplit[i]
-                if not(ef in sDict):
-                    sDict[ef] = State(ef)
-                a.addEffect(sDict[ef])
+            # split the string and parse preconditions or effects
+            split = [item.strip() for item in re.split('\[|,|]', line)]
 
+            # while there is a line with a precondition or effect at at the
+            # beginning keep parsing for this action
+            while(line and ((split[0] == 'Preconditions') or (split[0] == 'Effects'))):
+                for i in range(1, len(split)):
+                    var = split[i]
+                    if var != '':
+                        if not(var in sDict):
+                            sDict[var] = State(var)
+                        if split[0] == 'Preconditions':
+                            a.addPrecondition(sDict[var])
+                        else:
+                            a.addEffect(sDict[var])
+                # read the next line
+                line = f.readline()
+                # split the new line which was just read in
+                split = [item.strip() for item in re.split('\[|,|]', line)]
+
+            # append action to the list of actions
             allActions.append(a)
-
-        line = f.readline()
+        else:
+            # if none of conditions abover were satisfied then the line started with
+            # someting unexpected os skip it and read the next line
+            line = f.readline()
 
     # used to determine created negated literals
     neg = {'+': '-', '-': '+'}
@@ -460,6 +479,14 @@ def graphPlanGenerate():
     gp = initializePlan(iStates)
     plan(gp, allActions, negate)
     gp.writeOut(outFile)
+
+    print("\n")
+    curr = gp.root
+    while(curr):
+        print(curr.depth)
+        for m in curr._mutexes:
+            print((m, curr._mutexes[m]))
+        curr = curr.next
 
 
 if __name__ == "__main__":

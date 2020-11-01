@@ -1,0 +1,16 @@
+InitialState [+At(A),-Delivered(PA),-Delivered(PB)]
+
+GoalState [+Delivered(PA),+Delivered(PB)]
+
+Act [DriveTo(B)]
+Preconditions [+At(A),+Delivered(PA)]
+Effects [+At(B)]
+
+Act [DeliverPackage(B)]
+Preconditions [+At(B),-Delivered(PB)]
+Effects [+Delivered(PB)]
+
+Act [DeliverPackage(A)]
+Preconditions [+At(A),-Delivered(PA)]
+Effects [+Delivered(PA)]
+
