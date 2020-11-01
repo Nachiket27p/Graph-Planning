@@ -1,0 +1,96 @@
+InitialState [-0,-1,+2,+3,+5,+6,+7,-8,+9,-10,+11,-12,-13,-14,-15]
+
+GoalState [-5,-6,-7]
+
+Act [Move(2-->1)]
+Preconditions [-1]
+Effects [+1,-2]
+
+Act [Move(2-->3)]
+Preconditions [-3]
+Effects [+3,-2]
+
+Act [Move(2-->6)]
+Preconditions [-6]
+Effects [+6,-2]
+
+Act [Move(3-->2)]
+Preconditions [-2]
+Effects [+2,-3]
+
+Act [Move(3-->7)]
+Preconditions [-7]
+Effects [+7,-3]
+
+Act [Move(5-->4)]
+Preconditions [-4]
+Effects [+4,-5]
+
+Act [Move(5-->6)]
+Preconditions [-6]
+Effects [+6,-5]
+
+Act [Move(5-->1)]
+Preconditions [-1]
+Effects [+1,-5]
+
+Act [Move(5-->9)]
+Preconditions [-9]
+Effects [+9,-5]
+
+Act [Move(6-->5)]
+Preconditions [-5]
+Effects [+5,-6]
+
+Act [Move(6-->7)]
+Preconditions [-7]
+Effects [+7,-6]
+
+Act [Move(6-->2)]
+Preconditions [-2]
+Effects [+2,-6]
+
+Act [Move(6-->10)]
+Preconditions [-10]
+Effects [+10,-6]
+
+Act [Move(7-->6)]
+Preconditions [-6]
+Effects [+6,-7]
+
+Act [Move(7-->3)]
+Preconditions [-3]
+Effects [+3,-7]
+
+Act [Move(7-->11)]
+Preconditions [-11]
+Effects [+11,-7]
+
+Act [Move(9-->8)]
+Preconditions [-8]
+Effects [+8,-9]
+
+Act [Move(9-->10)]
+Preconditions [-10]
+Effects [+10,-9]
+
+Act [Move(9-->5)]
+Preconditions [-5]
+Effects [+5,-9]
+
+Act [Move(9-->13)]
+Preconditions [-13]
+Effects [+13,-9]
+
+Act [Move(11-->10)]
+Preconditions [-10]
+Effects [+10,-11]
+
+Act [Move(11-->7)]
+Preconditions [-7]
+Effects [+7,-11]
+
+Act [Move(11-->15)]
+Preconditions [-15]
+Effects [+15,-11]
+

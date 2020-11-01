@@ -1,32 +1,50 @@
-rows = 4
-cols = 4
-# position of the car
-carPos = 4
+import random
+import matplotlib.pyplot as plt
+import numpy as np
+from random import choices as rchoice
 
-positions = [2, 3, 4, 5, 6, 7, 9, 11]
+rows = 11
+cols = 11
 
-grid = [0]*(rows*cols)
+# this position is always fixed
+startRow = rows//2
 
-for p in positions:
-    grid[p] = 1
+# positions = [2, 3, 4, 5, 6, 7, 9, 11]
 
+# grid = [0]*(rows*cols)
+
+# for p in positions:
+#     grid[p] = 1
+
+p_of_1 = 0.75
+p_of_0 = 1 - p_of_1
+grid = rchoice(["\u25A0", ' '], [p_of_1, p_of_0], k=rows*cols)
+
+# make sure the start position is occupied
+grid[startRow*cols] = "\u25A0"
 for i in range(0, rows*cols, cols):
     print(grid[i:i+cols])
+    # row = ""
+    # for c in grid[i:i+cols]:
+    #     row += c
+    # print(row)
 
 initStates = []
-goalState = ['-5', '-6', '-7']
+goalState = []
+for i in range(1, cols):
+    goalState.append("-" + str(startRow*cols+i))
 actions = []
 
 for i in range(len(grid)):
-    if i != carPos:
+    if i != startRow:
         p = grid[i]
-        if p:
+        if p != ' ':
             initStates.append("+" + str(i))
         else:
             initStates.append("-" + str(i))
 
         # generate actions
-        if p:
+        if p != ' ':
             action = "Act [Move("+str(i)+"-->"
             precond = "Preconditions ["
             if ((i-1)//cols) == (i//cols):
