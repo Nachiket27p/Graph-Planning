@@ -116,7 +116,7 @@ class State(LayerElement):
 
 class Action(LayerElement):
     """
-        This class represents the actions in graph planning. This 
+        This class represents the actions in graph planning. This
         class inherits the LayerElement class.
     Args:
         LayerElement (LayerElement): SuperClass of this class
@@ -135,7 +135,7 @@ class Action(LayerElement):
             Adds a precondition to the end list of preconditions,
             this function does not perform any duplicate checking.
         Args:
-            precondition (State): The state/literal object which is 
+            precondition (State): The state/literal object which is
                                     the precondition.
         """
         self._preconditions.append(precondition)
@@ -413,6 +413,8 @@ class ActionLayer(Layer):
         for a in self._elements:
             if isinstance(a, Action):
                 rtnStr += str(a) + ", "
+            else:
+                rtnStr += "Persist(" + str(a) + "), "
 
         if rtnStr[-2] == ',':
             rtnStr = rtnStr[:-2]
@@ -423,13 +425,24 @@ class ActionLayer(Layer):
 
         for m in self._mutexes:
             val = self._mutexes[m]
+            mStr = "("
+            if isinstance(m[0], Action):
+                mStr += str(m[0]) + ", "
+            else:
+                mStr += "Persist(" + str(m[0]) + "), "
+
+            if isinstance(m[1], Action):
+                mStr += str(m[1]) + "), "
+            else:
+                mStr += "Persist(" + str(m[1]) + ")), "
+
             for mType in val:
                 if mType == mIE:
-                    ieString += str(m) + ", "
+                    ieString += mStr
                 elif mType == mI:
-                    iString += str(m) + ", "
+                    iString += mStr
                 elif mType == mCN:
-                    cnString += str(m) + ", "
+                    cnString += mStr
 
         # remove last comma
         if ieString[-2] == ',':

@@ -20,6 +20,16 @@ and **Q2_problem2.txt**.
 * To program **GraphPlanGenerate.py** takes two command line parameters, an input file containing
     the problem description, and an output file in which to store the results.
 
+* The input file for the program must contain the following format:
+        
+        InitialState [Initial_State_1, Initial_State_2>, ...]
+
+        GoalState [Goal_State_1>, Goal_State_2, ..., Goal_State_m]
+
+        Act [Action_Name]
+        Preconditions [Precondition_1, Precondition_2, ...]
+        Effects [Effect_1, Effect_2, ...]
+
 * This program keeps generating new layers until it reaches a stale point where the state
   layer is no longer changin. At this point the program terminates and outputs the plan to
   the output file provided.
@@ -92,6 +102,16 @@ and **Q2_problem2.txt**.
 * To program **GraphPlanExtract.py** takes two command line parameters, an input file containing
     the problem description, and an output file in which to store the results.
 
+* The input file for the program must contain the following format:
+        
+        InitialState [Initial_State_1, Initial_State_2>, ...]
+
+        GoalState [Goal_State_1>, Goal_State_2, ..., Goal_State_m]
+
+        Act [Action_Name]
+        Preconditions [Precondition_1, Precondition_2, ...]
+        Effects [Effect_1, Effect_2, ...]
+        
 * Upon execution of the program, the contents of the input file is displayed in the terminal
   and the solition is displayed at the bottom of ther terminal output as shown in the example below.
 
