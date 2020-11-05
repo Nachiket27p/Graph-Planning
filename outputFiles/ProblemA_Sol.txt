@@ -1,0 +1,34 @@
+StateLayer: <0>
+	Literals: +Hungry, +CleanTable
+	Negated Literals: 
+	Inconsistent Support: 
+ActLayer: <1>
+	Actions: Persist(+Hungry), Persist(+CleanTable), Cook
+	Inconsistent Effects: 
+	interference: 
+	Competing Needs: 
+StateLayer: <2>
+	Literals: +Hungry, +CleanTable, +Dinner
+	Negated Literals: 
+	Inconsistent Support: 
+ActLayer: <3>
+	Actions: Persist(+Hungry), Persist(+CleanTable), Persist(+Dinner), Cook, Eat
+	Inconsistent Effects: (Persist(+Hungry), Eat), (Persist(+CleanTable), Eat), (Persist(+Dinner), Eat), (Cook, Eat)
+	interference: (Persist(+Hungry), Eat), (Persist(+CleanTable), Eat), (Persist(+Dinner), Eat), (Cook, Eat)
+	Competing Needs: 
+StateLayer: <4>
+	Literals: +Hungry, +CleanTable, +Dinner, -Hungry, -CleanTable, -Dinner
+	Negated Literals: (+Hungry, -Hungry), (+CleanTable, -CleanTable), (+Dinner, -Dinner)
+	Inconsistent Support: (+Hungry, -Hungry), (+CleanTable, -CleanTable), (+Dinner, -Dinner), (+Hungry, -CleanTable), (+Hungry, -Dinner), (+CleanTable, -Hungry), (+CleanTable, -Dinner), (+Dinner, -Hungry), (+Dinner, -CleanTable)
+ActLayer: <5>
+	Actions: Persist(+Hungry), Persist(+CleanTable), Persist(+Dinner), Persist(-Hungry), Persist(-CleanTable), Persist(-Dinner), Cook, Eat, Clean
+	Inconsistent Effects: (Persist(+Hungry), Persist(-Hungry)), (Persist(+Hungry), Eat), (Persist(+CleanTable), Persist(-CleanTable)), (Persist(+CleanTable), Eat), (Persist(-CleanTable), Clean), (Clean, Eat), (Persist(+Dinner), Persist(-Dinner)), (Persist(+Dinner), Eat), (Persist(-Dinner), Cook), (Cook, Eat)
+	interference: (Persist(+Hungry), Persist(-Hungry)), (Persist(+Hungry), Eat), (Persist(+CleanTable), Persist(-CleanTable)), (Persist(+CleanTable), Eat), (Persist(-CleanTable), Clean), (Persist(+Dinner), Persist(-Dinner)), (Persist(+Dinner), Eat), (Persist(-Dinner), Cook), (Cook, Eat), (Persist(+CleanTable), Clean), (Persist(-Hungry), Eat), (Persist(-CleanTable), Cook), (Persist(-Dinner), Eat)
+	Competing Needs: (Persist(+Hungry), Persist(-Hungry)), (Persist(+CleanTable), Persist(-CleanTable)), (Clean, Eat), (Persist(+Dinner), Persist(-Dinner)), (Persist(-Dinner), Cook), (Persist(+CleanTable), Clean), (Persist(-Hungry), Eat), (Persist(-CleanTable), Cook), (Persist(-Dinner), Eat), (Persist(+Hungry), Persist(-CleanTable)), (Persist(+Hungry), Persist(-Dinner)), (Persist(+Hungry), Clean), (Persist(+CleanTable), Persist(-Hungry)), (Persist(+CleanTable), Persist(-Dinner)), (Persist(+Dinner), Persist(-Hungry)), (Persist(+Dinner), Persist(-CleanTable)), (Persist(+Dinner), Clean), (Persist(-Hungry), Cook), (Persist(-CleanTable), Eat), (Clean, Cook)
+StateLayer: <6>
+	Literals: +Hungry, +CleanTable, +Dinner, -Hungry, -CleanTable, -Dinner
+	Negated Literals: (+Hungry, -Hungry), (+CleanTable, -CleanTable), (+Dinner, -Dinner)
+	Inconsistent Support: (+Hungry, -Hungry), (+CleanTable, -CleanTable), (+Dinner, -Dinner), (+Hungry, -CleanTable), (+Hungry, -Dinner), (+Dinner, -Hungry), (+Dinner, -CleanTable)
+
+--------------------------------------------------------------------------------
+Solution: [[Cook], [Eat], [Clean]]

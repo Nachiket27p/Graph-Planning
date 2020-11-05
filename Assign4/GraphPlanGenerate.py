@@ -87,14 +87,13 @@ def loadFile(inFile, iStates, gStates, allActions, negate):
 
             # while there is a line with a precondition or effect at at the
             # beginning keep parsing for this action
-            while(line and ((split[0] == 'Preconditions' or split[0] == 'Precondition')
-                            or (split[0] == 'Effects' or split[0] == 'Effect'))):
+            while(line and ((split[0] == 'Preconditions') or (split[0] == 'Effects'))):
                 for i in range(1, len(split)):
                     var = split[i]
                     if var != '':
                         if not(var in sDict):
                             sDict[var] = State(var)
-                        if split[0] == 'Preconditions' or split[0] == 'Precondition':
+                        if split[0] == 'Preconditions':
                             a.addPrecondition(sDict[var])
                         else:
                             a.addEffect(sDict[var])

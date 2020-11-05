@@ -1,0 +1,19 @@
+InitialState [-ToastedBread,-Lettuce&Tomato,-CookedBacon]
+
+GoalState [+BLT]
+
+Act [Toast]
+Preconditions [-ToastedBread]
+Effects [+ToastedBread]
+
+Act [CutLettuce&Tomato]
+Preconditions [-Lettuce&Tomato]
+Effects [+Lettuce&Tomato]
+
+Act [CookBacon]
+Preconditions [-CookedBacon]
+Effects [+CookedBacon]
+
+Act [MakeBLT]
+Preconditions [+ToastedBread,+Lettuce&Tomato,+CookedBacon]
+Effects [+BLT]

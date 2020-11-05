@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["problemFiles/ProblemA.txt", "outputFiles/debug.txt"]
+            "args": ["problemFiles/ProblemB.txt", "outputFiles/debug.txt"]
         }
     ]
 }
