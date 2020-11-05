@@ -1,0 +1,31 @@
+StateLayer: <0>
+	Literals: -ToastedBread, -Lettuce&Tomato, -CookedBacon
+	Negated Literals: 
+	Inconsistent Support: 
+ActLayer: <1>
+	Actions: Persist(-ToastedBread), Persist(-Lettuce&Tomato), Persist(-CookedBacon), Toast, CutLettuce&Tomato, CookBacon
+	Inconsistent Effects: (Persist(-ToastedBread), Toast), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(-CookedBacon), CookBacon)
+	interference: (Persist(-ToastedBread), Toast), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(-CookedBacon), CookBacon)
+	Competing Needs: 
+StateLayer: <2>
+	Literals: -ToastedBread, -Lettuce&Tomato, -CookedBacon, +ToastedBread, +Lettuce&Tomato, +CookedBacon
+	Negated Literals: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon)
+	Inconsistent Support: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon)
+ActLayer: <3>
+	Actions: Persist(-ToastedBread), Persist(-Lettuce&Tomato), Persist(-CookedBacon), Persist(+ToastedBread), Persist(+Lettuce&Tomato), Persist(+CookedBacon), Toast, CutLettuce&Tomato, CookBacon, MakeBLT
+	Inconsistent Effects: (Persist(+ToastedBread), Persist(-ToastedBread)), (Persist(-ToastedBread), Toast), (Persist(+Lettuce&Tomato), Persist(-Lettuce&Tomato)), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), Persist(-CookedBacon)), (Persist(-CookedBacon), CookBacon)
+	interference: (Persist(+ToastedBread), Persist(-ToastedBread)), (Persist(-ToastedBread), Toast), (Persist(+Lettuce&Tomato), Persist(-Lettuce&Tomato)), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), Persist(-CookedBacon)), (Persist(-CookedBacon), CookBacon), (Persist(-ToastedBread), MakeBLT), (Persist(-Lettuce&Tomato), MakeBLT), (Persist(-CookedBacon), MakeBLT), (Persist(+ToastedBread), Toast), (Persist(+Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), CookBacon)
+	Competing Needs: (Persist(+ToastedBread), Persist(-ToastedBread)), (Persist(+Lettuce&Tomato), Persist(-Lettuce&Tomato)), (Persist(+CookedBacon), Persist(-CookedBacon)), (Persist(-ToastedBread), MakeBLT), (Persist(-Lettuce&Tomato), MakeBLT), (Persist(-CookedBacon), MakeBLT), (Persist(+ToastedBread), Toast), (Persist(+Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), CookBacon), (MakeBLT, Toast), (CutLettuce&Tomato, MakeBLT), (CookBacon, MakeBLT)
+StateLayer: <4>
+	Literals: -ToastedBread, -Lettuce&Tomato, -CookedBacon, +ToastedBread, +Lettuce&Tomato, +CookedBacon, +BLT
+	Negated Literals: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon)
+	Inconsistent Support: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon), (+BLT, -ToastedBread), (+BLT, -Lettuce&Tomato), (+BLT, -CookedBacon)
+ActLayer: <5>
+	Actions: Persist(-ToastedBread), Persist(-Lettuce&Tomato), Persist(-CookedBacon), Persist(+ToastedBread), Persist(+Lettuce&Tomato), Persist(+CookedBacon), Persist(+BLT), Toast, CutLettuce&Tomato, CookBacon, MakeBLT
+	Inconsistent Effects: (Persist(+ToastedBread), Persist(-ToastedBread)), (Persist(-ToastedBread), Toast), (Persist(+Lettuce&Tomato), Persist(-Lettuce&Tomato)), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), Persist(-CookedBacon)), (Persist(-CookedBacon), CookBacon)
+	interference: (Persist(+ToastedBread), Persist(-ToastedBread)), (Persist(-ToastedBread), Toast), (Persist(+Lettuce&Tomato), Persist(-Lettuce&Tomato)), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), Persist(-CookedBacon)), (Persist(-CookedBacon), CookBacon), (Persist(-ToastedBread), MakeBLT), (Persist(-Lettuce&Tomato), MakeBLT), (Persist(-CookedBacon), MakeBLT), (Persist(+ToastedBread), Toast), (Persist(+Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), CookBacon)
+	Competing Needs: (Persist(+ToastedBread), Persist(-ToastedBread)), (Persist(+Lettuce&Tomato), Persist(-Lettuce&Tomato)), (Persist(+CookedBacon), Persist(-CookedBacon)), (Persist(-ToastedBread), MakeBLT), (Persist(-Lettuce&Tomato), MakeBLT), (Persist(-CookedBacon), MakeBLT), (Persist(+ToastedBread), Toast), (Persist(+Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), CookBacon), (Persist(+BLT), Persist(-ToastedBread)), (Persist(+BLT), Persist(-Lettuce&Tomato)), (Persist(+BLT), Persist(-CookedBacon)), (Persist(+BLT), Toast), (Persist(+BLT), CutLettuce&Tomato), (Persist(+BLT), CookBacon), (MakeBLT, Toast), (CutLettuce&Tomato, MakeBLT), (CookBacon, MakeBLT)
+StateLayer: <6>
+	Literals: -ToastedBread, -Lettuce&Tomato, -CookedBacon, +ToastedBread, +Lettuce&Tomato, +CookedBacon, +BLT
+	Negated Literals: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon)
+	Inconsistent Support: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon), (+BLT, -ToastedBread), (+BLT, -Lettuce&Tomato), (+BLT, -CookedBacon)

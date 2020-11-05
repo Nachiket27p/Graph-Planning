@@ -1,0 +1,34 @@
+StateLayer: <0>
+	Literals: +At(A), -Delivered(PA), -Delivered(PB)
+	Negated Literals: 
+	Inconsistent Support: 
+ActLayer: <1>
+	Actions: Persist(+At(A)), Persist(-Delivered(PA)), Persist(-Delivered(PB)), DeliverPackage(A)
+	Inconsistent Effects: (Persist(-Delivered(PA)), DeliverPackage(A))
+	interference: (Persist(-Delivered(PA)), DeliverPackage(A))
+	Competing Needs: 
+StateLayer: <2>
+	Literals: +At(A), -Delivered(PA), -Delivered(PB), +Delivered(PA)
+	Negated Literals: (+Delivered(PA), -Delivered(PA))
+	Inconsistent Support: (+Delivered(PA), -Delivered(PA))
+ActLayer: <3>
+	Actions: Persist(+At(A)), Persist(-Delivered(PA)), Persist(-Delivered(PB)), Persist(+Delivered(PA)), DriveTo(B), DeliverPackage(A)
+	Inconsistent Effects: (Persist(+Delivered(PA)), Persist(-Delivered(PA))), (Persist(-Delivered(PA)), DeliverPackage(A))
+	interference: (Persist(+Delivered(PA)), Persist(-Delivered(PA))), (Persist(-Delivered(PA)), DeliverPackage(A)), (Persist(-Delivered(PA)), DriveTo(B)), (Persist(+Delivered(PA)), DeliverPackage(A))
+	Competing Needs: (Persist(+Delivered(PA)), Persist(-Delivered(PA))), (Persist(-Delivered(PA)), DriveTo(B)), (Persist(+Delivered(PA)), DeliverPackage(A)), (DeliverPackage(A), DriveTo(B))
+StateLayer: <4>
+	Literals: +At(A), -Delivered(PA), -Delivered(PB), +Delivered(PA), +At(B)
+	Negated Literals: (+Delivered(PA), -Delivered(PA))
+	Inconsistent Support: (+Delivered(PA), -Delivered(PA)), (+At(B), -Delivered(PA))
+ActLayer: <5>
+	Actions: Persist(+At(A)), Persist(-Delivered(PA)), Persist(-Delivered(PB)), Persist(+Delivered(PA)), Persist(+At(B)), DriveTo(B), DeliverPackage(B), DeliverPackage(A)
+	Inconsistent Effects: (Persist(+Delivered(PA)), Persist(-Delivered(PA))), (Persist(-Delivered(PA)), DeliverPackage(A)), (Persist(-Delivered(PB)), DeliverPackage(B))
+	interference: (Persist(+Delivered(PA)), Persist(-Delivered(PA))), (Persist(-Delivered(PA)), DeliverPackage(A)), (Persist(-Delivered(PB)), DeliverPackage(B)), (Persist(-Delivered(PA)), DriveTo(B)), (Persist(+Delivered(PA)), DeliverPackage(A))
+	Competing Needs: (Persist(+Delivered(PA)), Persist(-Delivered(PA))), (Persist(-Delivered(PA)), DriveTo(B)), (Persist(+Delivered(PA)), DeliverPackage(A)), (Persist(+At(B)), Persist(-Delivered(PA))), (Persist(-Delivered(PA)), DeliverPackage(B)), (Persist(+At(B)), DeliverPackage(A)), (DeliverPackage(A), DriveTo(B)), (DeliverPackage(A), DeliverPackage(B))
+StateLayer: <6>
+	Literals: +At(A), -Delivered(PA), -Delivered(PB), +Delivered(PA), +At(B), +Delivered(PB)
+	Negated Literals: (+Delivered(PA), -Delivered(PA)), (+Delivered(PB), -Delivered(PB))
+	Inconsistent Support: (+Delivered(PA), -Delivered(PA)), (+Delivered(PB), -Delivered(PB)), (+At(B), -Delivered(PA)), (+Delivered(PB), -Delivered(PA))
+
+--------------------------------------------------------------------------------
+Solution: [[DeliverPackage(A)], [DriveTo(B)], [DeliverPackage(B)]]

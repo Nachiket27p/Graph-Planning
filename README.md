@@ -29,9 +29,9 @@ and **Q2_problem2.txt**.
 
 * The output file will contain the contents of each layer in the graph plan, additionaly
     each layer has a number next to it, this indicates the depth in the graph plan. The action
-    layer only lists actions on the 'Actions: ' line of the output of each layer, but the
-    mutexes contain relations between persistant literals and actions as well as mutexes
-    between two actions. An example is shown below.
+    layer lists both actions and persistant literals in the form Persist(literal_name)
+    which behave as actions. The mutexes also contain relationships between actual actions and
+    persistent literals. An example is shown below.
 
 * How to use? There are two ways to run the program both are listed below, the second one requires
     a linux terminal to execute.
@@ -72,9 +72,9 @@ and **Q2_problem2.txt**.
             Negated Literals: 
             Inconsistent Support: 
         ActLayer: <1>
-            Actions: DeliverPackage(A)
-            Inconsistent Effects: (-Delivered(PA), DeliverPackage(A))
-            interference: (-Delivered(PA), DeliverPackage(A))
+            Actions: Persist(+At(A)), Persist(-Delivered(PA)), Persist(-Delivered(PB)), DeliverPackage(A)
+            Inconsistent Effects: (Persist(-Delivered(PA)), DeliverPackage(A))
+            interference: (Persist(-Delivered(PA)), DeliverPackage(A))
             Competing Needs: 
         StateLayer: <2>
             Literals: +At(A), -Delivered(PA), -Delivered(PB), +Delivered(PA)
@@ -94,6 +94,12 @@ and **Q2_problem2.txt**.
 
 * Upon execution of the program, the contents of the input file is displayed in the terminal
   and the solition is displayed at the bottom of ther terminal output as shown in the example below.
+
+* The output file will contain the contents of each layer in the graph plan and the solution
+    will be listed at the end of the file. Each layer has a number next to it, this indicates the
+    depth in the graph plan. The action layer lists both actions and persistant literals in
+    the form Persist(literal_name) which behave as actions. The mutexes also contain relationships
+    between actual actions and persistent literals.
 
 * Because this program is conserned with extraction the solution and not generating the full planning
   it does not keep generating new layers once the solition has been located. **GraphPlanGenerate.py**
@@ -150,19 +156,19 @@ and **Q2_problem2.txt**.
             Negated Literals: 
             Inconsistent Support: 
         ActLayer: <1>
-            Actions: Toast, CutLettuce&Tomato, CookBacon
-            Inconsistent Effects: (-ToastedBread, Toast), (-Lettuce&Tomato, CutLettuce&Tomato), (-CookedBacon, CookBacon)
-            interference: (-ToastedBread, Toast), (-Lettuce&Tomato, CutLettuce&Tomato), (-CookedBacon, CookBacon)
+            Actions: Persist(-ToastedBread), Persist(-Lettuce&Tomato), Persist(-CookedBacon), Toast, CutLettuce&Tomato, CookBacon
+            Inconsistent Effects: (Persist(-ToastedBread), Toast), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(-CookedBacon), CookBacon)
+            interference: (Persist(-ToastedBread), Toast), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(-CookedBacon), CookBacon)
             Competing Needs: 
         StateLayer: <2>
             Literals: -ToastedBread, -Lettuce&Tomato, -CookedBacon, +ToastedBread, +Lettuce&Tomato, +CookedBacon
             Negated Literals: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon)
             Inconsistent Support: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon)
         ActLayer: <3>
-            Actions: Toast, CutLettuce&Tomato, CookBacon, MakeBLT
-            Inconsistent Effects: (+ToastedBread, -ToastedBread), (-ToastedBread, Toast), (+Lettuce&Tomato, -Lettuce&Tomato), (-Lettuce&Tomato, CutLettuce&Tomato), (+CookedBacon, -CookedBacon), (-CookedBacon, CookBacon)
-            interference: (+ToastedBread, -ToastedBread), (-ToastedBread, Toast), (+Lettuce&Tomato, -Lettuce&Tomato), (-Lettuce&Tomato, CutLettuce&Tomato), (+CookedBacon, -CookedBacon), (-CookedBacon, CookBacon), (-ToastedBread, MakeBLT), (-Lettuce&Tomato, MakeBLT), (-CookedBacon, MakeBLT), (+ToastedBread, Toast), (+Lettuce&Tomato, CutLettuce&Tomato), (+CookedBacon, CookBacon)
-            Competing Needs: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon), (-ToastedBread, MakeBLT), (-Lettuce&Tomato, MakeBLT), (-CookedBacon, MakeBLT), (+ToastedBread, Toast), (+Lettuce&Tomato, CutLettuce&Tomato), (+CookedBacon, CookBacon), (MakeBLT, Toast), (CutLettuce&Tomato, MakeBLT), (CookBacon, MakeBLT)
+            Actions: Persist(-ToastedBread), Persist(-Lettuce&Tomato), Persist(-CookedBacon), Persist(+ToastedBread), Persist(+Lettuce&Tomato), Persist(+CookedBacon), Toast, CutLettuce&Tomato, CookBacon, MakeBLT
+            Inconsistent Effects: (Persist(+ToastedBread), Persist(-ToastedBread)), (Persist(-ToastedBread), Toast), (Persist(+Lettuce&Tomato), Persist(-Lettuce&Tomato)), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), Persist(-CookedBacon)), (Persist(-CookedBacon), CookBacon)
+            interference: (Persist(+ToastedBread), Persist(-ToastedBread)), (Persist(-ToastedBread), Toast), (Persist(+Lettuce&Tomato), Persist(-Lettuce&Tomato)), (Persist(-Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), Persist(-CookedBacon)), (Persist(-CookedBacon), CookBacon), (Persist(-ToastedBread), MakeBLT), (Persist(-Lettuce&Tomato), MakeBLT), (Persist(-CookedBacon), MakeBLT), (Persist(+ToastedBread), Toast), (Persist(+Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), CookBacon)
+            Competing Needs: (Persist(+ToastedBread), Persist(-ToastedBread)), (Persist(+Lettuce&Tomato), Persist(-Lettuce&Tomato)), (Persist(+CookedBacon), Persist(-CookedBacon)), (Persist(-ToastedBread), MakeBLT), (Persist(-Lettuce&Tomato), MakeBLT), (Persist(-CookedBacon), MakeBLT), (Persist(+ToastedBread), Toast), (Persist(+Lettuce&Tomato), CutLettuce&Tomato), (Persist(+CookedBacon), CookBacon), (MakeBLT, Toast), (CutLettuce&Tomato, MakeBLT), (CookBacon, MakeBLT)
         StateLayer: <4>
             Literals: -ToastedBread, -Lettuce&Tomato, -CookedBacon, +ToastedBread, +Lettuce&Tomato, +CookedBacon, +BLT
             Negated Literals: (+ToastedBread, -ToastedBread), (+Lettuce&Tomato, -Lettuce&Tomato), (+CookedBacon, -CookedBacon)
