@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from random import choices as rchoice
 
-rows = 11
-cols = 11
+rows = 5
+cols = 5
 
 # this position is always fixed
 startRow = rows//2

@@ -1,0 +1,240 @@
+InitialState [-0,-1,+3,+4,+5,+6,+7,-8,-9,+10,+11,+12,+13,-14,+15,+16,+17,+18,+19,+20,+21,-22,+23,+24]
+
+GoalState [-11,-12,-13,-14]
+
+Act [Move(3-->2)]
+Preconditions [-2]
+Effects [+2,-3]
+
+Act [Move(3-->4)]
+Preconditions [-4]
+Effects [+4,-3]
+
+Act [Move(3-->8)]
+Preconditions [-8]
+Effects [+8,-3]
+
+Act [Move(4-->3)]
+Preconditions [-3]
+Effects [+3,-4]
+
+Act [Move(4-->9)]
+Preconditions [-9]
+Effects [+9,-4]
+
+Act [Move(5-->6)]
+Preconditions [-6]
+Effects [+6,-5]
+
+Act [Move(5-->0)]
+Preconditions [-0]
+Effects [+0,-5]
+
+Act [Move(5-->10)]
+Preconditions [-10]
+Effects [+10,-5]
+
+Act [Move(6-->5)]
+Preconditions [-5]
+Effects [+5,-6]
+
+Act [Move(6-->7)]
+Preconditions [-7]
+Effects [+7,-6]
+
+Act [Move(6-->1)]
+Preconditions [-1]
+Effects [+1,-6]
+
+Act [Move(6-->11)]
+Preconditions [-11]
+Effects [+11,-6]
+
+Act [Move(7-->6)]
+Preconditions [-6]
+Effects [+6,-7]
+
+Act [Move(7-->8)]
+Preconditions [-8]
+Effects [+8,-7]
+
+Act [Move(7-->2)]
+Preconditions [-2]
+Effects [+2,-7]
+
+Act [Move(7-->12)]
+Preconditions [-12]
+Effects [+12,-7]
+
+Act [Move(10-->11)]
+Preconditions [-11]
+Effects [+11,-10]
+
+Act [Move(10-->5)]
+Preconditions [-5]
+Effects [+5,-10]
+
+Act [Move(10-->15)]
+Preconditions [-15]
+Effects [+15,-10]
+
+Act [Move(11-->10)]
+Preconditions [-10]
+Effects [+10,-11]
+
+Act [Move(11-->12)]
+Preconditions [-12]
+Effects [+12,-11]
+
+Act [Move(11-->6)]
+Preconditions [-6]
+Effects [+6,-11]
+
+Act [Move(11-->16)]
+Preconditions [-16]
+Effects [+16,-11]
+
+Act [Move(12-->11)]
+Preconditions [-11]
+Effects [+11,-12]
+
+Act [Move(12-->13)]
+Preconditions [-13]
+Effects [+13,-12]
+
+Act [Move(12-->7)]
+Preconditions [-7]
+Effects [+7,-12]
+
+Act [Move(12-->17)]
+Preconditions [-17]
+Effects [+17,-12]
+
+Act [Move(13-->12)]
+Preconditions [-12]
+Effects [+12,-13]
+
+Act [Move(13-->14)]
+Preconditions [-14]
+Effects [+14,-13]
+
+Act [Move(13-->8)]
+Preconditions [-8]
+Effects [+8,-13]
+
+Act [Move(13-->18)]
+Preconditions [-18]
+Effects [+18,-13]
+
+Act [Move(15-->16)]
+Preconditions [-16]
+Effects [+16,-15]
+
+Act [Move(15-->10)]
+Preconditions [-10]
+Effects [+10,-15]
+
+Act [Move(15-->20)]
+Preconditions [-20]
+Effects [+20,-15]
+
+Act [Move(16-->15)]
+Preconditions [-15]
+Effects [+15,-16]
+
+Act [Move(16-->17)]
+Preconditions [-17]
+Effects [+17,-16]
+
+Act [Move(16-->11)]
+Preconditions [-11]
+Effects [+11,-16]
+
+Act [Move(16-->21)]
+Preconditions [-21]
+Effects [+21,-16]
+
+Act [Move(17-->16)]
+Preconditions [-16]
+Effects [+16,-17]
+
+Act [Move(17-->18)]
+Preconditions [-18]
+Effects [+18,-17]
+
+Act [Move(17-->12)]
+Preconditions [-12]
+Effects [+12,-17]
+
+Act [Move(17-->22)]
+Preconditions [-22]
+Effects [+22,-17]
+
+Act [Move(18-->17)]
+Preconditions [-17]
+Effects [+17,-18]
+
+Act [Move(18-->19)]
+Preconditions [-19]
+Effects [+19,-18]
+
+Act [Move(18-->13)]
+Preconditions [-13]
+Effects [+13,-18]
+
+Act [Move(18-->23)]
+Preconditions [-23]
+Effects [+23,-18]
+
+Act [Move(19-->18)]
+Preconditions [-18]
+Effects [+18,-19]
+
+Act [Move(19-->14)]
+Preconditions [-14]
+Effects [+14,-19]
+
+Act [Move(19-->24)]
+Preconditions [-24]
+Effects [+24,-19]
+
+Act [Move(20-->21)]
+Preconditions [-21]
+Effects [+21,-20]
+
+Act [Move(20-->15)]
+Preconditions [-15]
+Effects [+15,-20]
+
+Act [Move(21-->20)]
+Preconditions [-20]
+Effects [+20,-21]
+
+Act [Move(21-->22)]
+Preconditions [-22]
+Effects [+22,-21]
+
+Act [Move(21-->16)]
+Preconditions [-16]
+Effects [+16,-21]
+
+Act [Move(23-->22)]
+Preconditions [-22]
+Effects [+22,-23]
+
+Act [Move(23-->24)]
+Preconditions [-24]
+Effects [+24,-23]
+
+Act [Move(23-->18)]
+Preconditions [-18]
+Effects [+18,-23]
+
+Act [Move(24-->23)]
+Preconditions [-23]
+Effects [+23,-24]
+
+Act [Move(24-->19)]
+Preconditions [-19]
+Effects [+19,-24]
+
