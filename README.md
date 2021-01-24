@@ -1,4 +1,4 @@
-# csc520Assi4
+# Graph Planning
 
 All programs in this assignment require python3 to function correctly.
 
